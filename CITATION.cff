@@ -1,0 +1,87 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata from this file."
+title: "Crystallize: a two-minute reasoning game about evidence, calibration and replication (SYNTHETIC)"
+type: software
+authors:
+  - family-names: "Brisson"
+    given-names: "Jean-François"
+    orcid: "https://orcid.org/0009-0000-9778-5374"
+    affiliation: "Spark AI NLP, Fredericton, New Brunswick, Canada"
+version: 0.1.0
+license: AGPL-3.0-only
+repository-code: "https://github.com/sparkainlp-x/crystallize"
+abstract: >-
+  SYNTHETIC educational game, zero dependencies, offline, English and French.
+  The player decides how much synthetic data to reveal before claiming that a
+  hidden direction exists in noisy 2-D readings, states a probability scored
+  by the Brier rule, and faces a simulated reviewer's replication. Includes a
+  daily seeded puzzle, a plain-text share card, challenge links and an exact
+  Bayesian reference observer for the generator.
+keywords:
+  - "scientific-reasoning"
+  - "calibration"
+  - "replication"
+  - "scoring-rules"
+  - "education"
+  - "synthetic"
+  - "javascript"
+references:
+  - type: article
+    title: "Verification of forecasts expressed in terms of probability"
+    authors:
+      - family-names: "Brier"
+        given-names: "Glenn W."
+    year: 1950
+    journal: "Monthly Weather Review"
+    volume: 78
+    issue: "1"
+    start: 1
+    end: 3
+  - type: article
+    title: "Strictly proper scoring rules, prediction, and estimation"
+    authors:
+      - family-names: "Gneiting"
+        given-names: "Tilmann"
+      - family-names: "Raftery"
+        given-names: "Adrian E."
+    year: 2007
+    journal: "Journal of the American Statistical Association"
+    volume: 102
+    issue: "477"
+    start: 359
+    end: 378
+    doi: "10.1198/016214506000001437"
+  - type: article
+    title: "Why most published research findings are false"
+    authors:
+      - family-names: "Ioannidis"
+        given-names: "John P. A."
+    year: 2005
+    journal: "PLoS Medicine"
+    volume: 2
+    issue: "8"
+    start: e124
+    doi: "10.1371/journal.pmed.0020124"
+  - type: article
+    title: "False-positive psychology"
+    authors:
+      - family-names: "Simmons"
+        given-names: "Joseph P."
+      - family-names: "Nelson"
+        given-names: "Leif D."
+      - family-names: "Simonsohn"
+        given-names: "Uri"
+    year: 2011
+    journal: "Psychological Science"
+    volume: 22
+    issue: "11"
+    start: 1359
+    end: 1366
+    doi: "10.1177/0956797611417632"
+  - type: software
+    title: "membrane-crystallization v0.1.0"
+    authors:
+      - family-names: "Brisson"
+        given-names: "Jean-François"
+    year: 2026
+    doi: "10.5281/zenodo.23583050"
