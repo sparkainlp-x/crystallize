@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="Crystallize: a two-minute, offline, synthetic reasoning game about evidence, calibration and replication.">
+<title>Crystallize</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230b1530'/%3E%3Cpath d='M6 26 L26 6' stroke='%23c9a84c' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='10' cy='20' r='2' fill='%2340d0e0'/%3E%3Ccircle cx='21' cy='13' r='2' fill='%2340d0e0'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to the game</a>
+<header class="top">
+  <div class="brand">
+    <h1 id="app-title">CRYSTALLIZE</h1>
+    <p id="app-tagline" class="tagline"></p>
+  </div>
+  <div class="tools">
+    <span id="tag-synthetic" class="tag"></span>
+    <button id="btn-lang" class="btn small" type="button"></button>
+    <button id="btn-help" class="btn small" type="button" aria-haspopup="dialog"></button>
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+  <section id="s-intro" class="card" aria-labelledby="intro-heading" hidden>
+    <h2 id="intro-heading"></h2>
+    <p id="intro-mode" class="muted"></p>
+    <p id="intro-beat" class="beat" hidden></p>
+    <p id="intro-question" class="lead"></p>
+    <p id="intro-prior"></p>
+    <p id="intro-rules" class="muted"></p>
+    <div class="row">
+      <button id="btn-start" class="btn primary" type="button"></button>
+      <button id="btn-see-result" class="btn" type="button" hidden></button>
+    </div>
+    <p id="intro-already" class="muted" hidden></p>
+  </section>
+
+  <section id="s-play" class="card" aria-labelledby="play-heading" hidden>
+    <h2 id="play-heading" class="sr-only"></h2>
+    <div class="plotwrap">
+      <svg id="plot" class="plot" viewBox="-5 -5 10 10" role="img" aria-labelledby="plot-title" focusable="false">
+        <title id="plot-title"></title>
+        <g id="plot-grid"></g>
+        <g id="plot-pts"></g>
+        <g id="plot-axes"></g>
+      </svg>
+    </div>
+    <div class="readout" aria-live="polite">
+      <p id="play-n"></p>
+      <p id="play-ratio"></p>
+      <p id="play-axis"></p>
+      <p id="play-cost" class="muted"></p>
+    </div>
+    <div class="budget" aria-hidden="true"><div id="budget-fill"></div></div>
+    <figure class="trace">
+      <svg id="trace" viewBox="0 0 120 36" preserveAspectRatio="none" role="img" aria-labelledby="trace-title" focusable="false">
+        <title id="trace-title"></title>
+        <polyline id="trace-line" fill="none" stroke="#40d0e0" stroke-width="1.2" vector-effect="non-scaling-stroke"></polyline>
+      </svg>
+    </figure>
+    <div class="row">
+      <button id="btn-s1" class="btn" type="button" aria-keyshortcuts="s"></button>
+      <button id="btn-s5" class="btn" type="button" aria-keyshortcuts="f"></button>
+      <button id="btn-commit" class="btn primary" type="button" aria-keyshortcuts="c"></button>
+    </div>
+    <p id="play-msg" class="muted" aria-live="polite"></p>
+    <p id="play-hint" class="muted small-text"></p>
+  </section>
+
+  <section id="s-commit" class="card" aria-labelledby="commit-heading" hidden>
+    <h2 id="commit-heading"></h2>
+    <p id="commit-question" class="lead"></p>
+    <label for="commit-slider" id="commit-slider-label"></label>
+    <div class="sliderrow">
+      <input id="commit-slider" type="range" min="1" max="99" step="1" value="50">
+      <output id="commit-value" for="commit-slider"></output>
+    </div>
+    <p id="commit-note" class="muted"></p>
+    <div class="row"><button id="btn-submit-claim" class="btn primary" type="button"></button></div>
+  </section>
+
+  <section id="s-review" class="card" aria-labelledby="review-heading" hidden>
+    <h2 id="review-heading"></h2>
+    <blockquote id="review-says"></blockquote>
+    <div class="plotwrap small">
+      <svg id="rplot" class="plot" viewBox="-5 -5 10 10" role="img" aria-labelledby="rplot-title" focusable="false">
+        <title id="rplot-title"></title>
+        <g id="rplot-grid"></g><g id="rplot-pts"></g><g id="rplot-axes"></g>
+      </svg>
+    </div>
+    <p id="review-ratio" class="lead"></p>
+    <p id="review-ref" class="muted"></p>
+    <p id="review-verdict" class="verdict"></p>
+    <label for="review-slider" id="review-slider-label"></label>
+    <div class="sliderrow">
+      <input id="review-slider" type="range" min="1" max="99" step="1" value="50">
+      <output id="review-value" for="review-slider"></output>
+    </div>
+    <div class="row"><button id="btn-final" class="btn primary" type="button"></button></div>
+  </section>
+
+  <section id="s-result" class="card" aria-labelledby="result-heading" hidden>
+    <h2 id="result-heading"></h2>
+    <div class="plotwrap small">
+      <svg id="xplot" class="plot" viewBox="-5 -5 10 10" role="img" aria-labelledby="xplot-title" focusable="false">
+        <title id="xplot-title"></title>
+        <g id="xplot-grid"></g><g id="xplot-pts"></g><g id="xplot-axes"></g>
+      </svg>
+    </div>
+    <p id="result-truth" class="lead"></p>
+    <table class="scores"><tbody id="result-rows"></tbody></table>
+    <p id="result-ideal" class="muted"></p>
+    <p id="result-best" class="best" hidden></p>
+    <article class="lesson" aria-labelledby="lesson-title">
+      <h3 id="lesson-heading"></h3>
+      <h4 id="lesson-title"></h4>
+      <p id="lesson-body"></p>
+    </article>
+    <h3 id="share-heading"></h3>
+    <pre id="share-text" tabindex="0"></pre>
+    <div class="row">
+      <button id="btn-share" class="btn primary" type="button"></button>
+      <button id="btn-challenge" class="btn" type="button"></button>
+      <button id="btn-practice" class="btn" type="button"></button>
+    </div>
+    <p id="result-msg" class="muted" aria-live="polite"></p>
+    <p id="result-notcounted" class="muted" hidden></p>
+    <h3 id="stats-heading"></h3>
+    <ul id="stats-list" class="stats"></ul>
+  </section>
+</main>
+
+<div id="help" class="modal" role="dialog" aria-modal="true" aria-labelledby="help-heading" hidden>
+  <div class="modal-box">
+    <h2 id="help-heading"></h2>
+    <p id="help-p1"></p><p id="help-p2"></p><p id="help-p3"></p><p id="help-p4"></p><p id="help-p5"></p>
+    <button id="btn-help-close" class="btn primary" type="button"></button>
+  </div>
+</div>
+
+<footer class="foot">
+  <p id="footer-privacy"></p>
+  <p id="footer-disclaimer"></p>
+  <p id="footer-license"></p>
+</footer>
+
+<script src="i18n.js"></script>
+<script src="game.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
