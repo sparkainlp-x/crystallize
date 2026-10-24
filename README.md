@@ -55,7 +55,7 @@ Open `dist/index.html` in a browser (one self-contained file, about 68 kB), or s
 
 ```bash
 python3 -m http.server 8099      # then open http://127.0.0.1:8099/
-npm test                         # node --test: 52 tests, no dependencies
+npm test                         # node --test: 57 tests, no dependencies
 node build.js                    # rebuild dist/index.html from the sources
 ```
 
@@ -63,14 +63,14 @@ Sources: `index.html`, `style.css`, `i18n.js` (strings), `game.js` (pure logic: 
 
 ## Tests
 
-`npm test` runs 52 tests with Node's built-in runner:
+`npm test` runs 57 tests with Node's built-in runner:
 
 - seeded RNG and generator determinism per seed, the daily puzzle being identical per date, the base-rate frequency of real instruments;
 - statistics (eigen-decomposition on known data), the Bayesian reference observer being calibrated against the generator and beating the prior;
 - scoring: strictly proper, monotone, clamped, sampling cost monotone, overclaiming penalised;
 - replication: deterministic, uses fresh points, false-positive rate about 5 percent under pure noise (checks the F(20,20) threshold), more likely to pass on the true axis;
-- streak, day-number (DST and leap-day safe), hash parsing and building, hostile input;
-- share card format, no emoji, short lines, no spoiler, FR card;
+- streak, day-number (DST and leap-day safe), hash parsing and building, hostile input, impossible calendar dates, a corrupted saved record;
+- share card format, no emoji, lines of at most 40 characters in EN and FR, no spoiler;
 - i18n key and placeholder parity for every language, lessons present in every language;
 - the built page has no network APIs or remote URLs, ids and i18n keys used by the code exist, accessibility basics, brand colours, no banned wording.
 
