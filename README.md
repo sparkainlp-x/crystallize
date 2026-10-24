@@ -4,6 +4,8 @@
 
 Résumé FR : jeu éducatif SYNTHÉTIQUE de deux minutes sur la preuve, la calibration et la réplication. Un puzzle quotidien identique pour tous (graine = date), des puzzles d'entraînement illimités, une carte de partage en texte brut et des liens de défi. Interface EN/FR (langue du navigateur par défaut). Les détails sont ci-dessous en anglais.
 
+**Play it:** https://sparkainlp-x.github.io/crystallize/ (one HTML file, works offline once loaded).
+
 ![Result screen](docs/screenshots/5-result-mobile.png)
 
 ## The game

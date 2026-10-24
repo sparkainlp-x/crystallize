@@ -10,4 +10,5 @@
 - 57 tests with Node's built-in runner, CI on Node 20, 22 and 24, README, DESIGN, CITATION.cff and .zenodo.json.
 - Checked in headless Chrome by hand (not in CI): full round on 390 px, 320 px and desktop viewports, EN and FR, reduced motion; no console errors, no overflow, no external requests.
 - Hardening before release: impossible dates in challenge links are rejected, a damaged saved record is discarded entry by entry, language names are looked up as own properties, non-finite probabilities count as 50 percent, the French share card fits 40 characters, the daily result is stored under the puzzle's own date, a pasted challenge link works in an open tab, the skip link is translated and Tab stays inside the help dialog.
+- GitHub Pages deploys the built single file from main (`.github/workflows/pages.yml`).
 - Tuning: sampling cost set to 0.8 per reading after simulating the reference observer (`docs/reference-curve.txt`).
