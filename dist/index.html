@@ -1,0 +1,1223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="Crystallize: a two-minute, offline, synthetic reasoning game about evidence, calibration and replication.">
+<title>Crystallize</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230b1530'/%3E%3Cpath d='M6 26 L26 6' stroke='%23c9a84c' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='10' cy='20' r='2' fill='%2340d0e0'/%3E%3Ccircle cx='21' cy='13' r='2' fill='%2340d0e0'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #0a1330;
+  --bg2: #101c40;
+  --panel: #12204a;
+  --line: #2a3b6e;
+  --text: #eef2ff;
+  --muted: #b3bedb;
+  --gold: #c9a84c;
+  --gold-bright: #e0c36a;
+  --cyan: #40d0e0;
+  --danger: #ff8a8a;
+  --radius: 12px;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: radial-gradient(1200px 600px at 50% -10%, #16275a 0%, var(--bg) 60%) fixed;
+  color: var(--text); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 0 12px 24px;
+}
+.skip { position: absolute; left: -999px; top: 0; background: var(--gold); color: #0a1330; padding: 8px 12px; z-index: 10; }
+.skip:focus { left: 8px; top: 8px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.top, main, .foot { width: 100%; max-width: 560px; }
+.top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 16px 0 8px; flex-wrap: wrap; }
+h1 { margin: 0; font-size: 1.7rem; letter-spacing: 0.22em; color: var(--gold); font-weight: 700; }
+.tagline { margin: 2px 0 0; color: var(--muted); font-size: 0.95rem; }
+.tools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.tag { border: 1px solid var(--cyan); color: var(--cyan); border-radius: 999px; padding: 2px 10px; font-size: 0.72rem; letter-spacing: 0.08em; }
+main { outline: none; }
+.card { background: linear-gradient(180deg, var(--panel), var(--bg2)); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin-top: 10px; }
+.card[hidden], [hidden] { display: none !important; }
+h2 { margin: 0 0 6px; font-size: 1.2rem; color: var(--gold-bright); }
+h3 { margin: 18px 0 6px; font-size: 1rem; color: var(--gold-bright); }
+h4 { margin: 0 0 4px; font-size: 1rem; color: var(--cyan); }
+p { margin: 8px 0; }
+.lead { font-size: 1.05rem; }
+.muted { color: var(--muted); }
+.small-text { font-size: 0.85rem; }
+.beat { color: var(--cyan); font-weight: 600; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.btn {
+  appearance: none; border: 1px solid var(--line); background: #1a2a5c; color: var(--text); padding: 12px 16px;
+  min-height: 44px; border-radius: 10px; font: inherit; cursor: pointer; touch-action: manipulation;
+}
+.btn:hover { border-color: var(--cyan); }
+.btn.primary { background: var(--gold); color: #0a1330; border-color: var(--gold); font-weight: 700; }
+.btn.primary:hover { background: var(--gold-bright); }
+.btn.small { padding: 6px 12px; min-height: 36px; font-size: 0.9rem; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
+.plotwrap { display: flex; justify-content: center; }
+.plot { width: 100%; max-width: 420px; aspect-ratio: 1; background: #070e26; border: 1px solid var(--line); border-radius: 10px; }
+.plotwrap.small .plot { max-width: 320px; }
+.readout p { margin: 2px 0; font-variant-numeric: tabular-nums; }
+.budget { height: 6px; background: #070e26; border-radius: 3px; margin: 10px 0; overflow: hidden; }
+#budget-fill { height: 100%; width: 0; background: var(--cyan); }
+.trace { margin: 6px 0 0; }
+.trace svg { width: 100%; height: 36px; background: #070e26; border: 1px solid var(--line); border-radius: 6px; }
+.sliderrow { display: flex; align-items: center; gap: 12px; margin: 8px 0; }
+input[type=range] { flex: 1; min-height: 44px; accent-color: var(--gold); }
+output { min-width: 4ch; text-align: right; font-weight: 700; color: var(--gold-bright); font-variant-numeric: tabular-nums; }
+label { display: block; margin-top: 10px; }
+blockquote { margin: 8px 0; padding: 8px 12px; border-left: 3px solid var(--cyan); background: #0e1a3d; border-radius: 0 8px 8px 0; }
+.verdict { font-weight: 600; }
+.scores { width: 100%; border-collapse: collapse; margin: 8px 0; font-variant-numeric: tabular-nums; }
+.scores td { padding: 4px 0; border-bottom: 1px solid var(--line); }
+.scores td:last-child { text-align: right; white-space: nowrap; }
+.scores tr.total td { font-weight: 700; color: var(--gold-bright); border-bottom: 2px solid var(--gold); }
+.best { color: var(--cyan); font-weight: 700; }
+.lesson { margin-top: 14px; padding: 12px; border: 1px solid var(--gold); border-radius: 10px; background: #0e1a3d; }
+.lesson h3 { margin-top: 0; }
+pre {
+  white-space: pre-wrap; word-break: break-word; background: #070e26; border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px; font: 0.9rem/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--text);
+}
+.stats { list-style: none; margin: 0; padding: 0; color: var(--muted); }
+.stats li { padding: 2px 0; }
+.modal { position: fixed; inset: 0; background: rgba(4, 8, 20, 0.8); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 20; }
+.modal-box { max-width: 520px; max-height: 90vh; overflow: auto; background: var(--panel); border: 1px solid var(--gold); border-radius: var(--radius); padding: 18px; }
+.foot { margin-top: 18px; color: var(--muted); font-size: 0.8rem; }
+.foot p { margin: 4px 0; }
+@media (prefers-reduced-motion: no-preference) {
+  #budget-fill { transition: width 0.25s ease; }
+  .card { animation: rise 0.25s ease both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+}
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media (forced-colors: active) { .btn.primary { border: 2px solid ButtonText; } }
+h2:focus, h2[tabindex="-1"]:focus { outline: none; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the game</a>
+<header class="top">
+  <div class="brand">
+    <h1 id="app-title">CRYSTALLIZE</h1>
+    <p id="app-tagline" class="tagline"></p>
+  </div>
+  <div class="tools">
+    <span id="tag-synthetic" class="tag"></span>
+    <button id="btn-lang" class="btn small" type="button"></button>
+    <button id="btn-help" class="btn small" type="button" aria-haspopup="dialog"></button>
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+  <section id="s-intro" class="card" aria-labelledby="intro-heading" hidden>
+    <h2 id="intro-heading"></h2>
+    <p id="intro-mode" class="muted"></p>
+    <p id="intro-beat" class="beat" hidden></p>
+    <p id="intro-question" class="lead"></p>
+    <p id="intro-prior"></p>
+    <p id="intro-rules" class="muted"></p>
+    <div class="row">
+      <button id="btn-start" class="btn primary" type="button"></button>
+      <button id="btn-see-result" class="btn" type="button" hidden></button>
+    </div>
+    <p id="intro-already" class="muted" hidden></p>
+  </section>
+
+  <section id="s-play" class="card" aria-labelledby="play-heading" hidden>
+    <h2 id="play-heading" class="sr-only"></h2>
+    <div class="plotwrap">
+      <svg id="plot" class="plot" viewBox="-5 -5 10 10" role="img" aria-labelledby="plot-title" focusable="false">
+        <title id="plot-title"></title>
+        <g id="plot-grid"></g>
+        <g id="plot-pts"></g>
+        <g id="plot-axes"></g>
+      </svg>
+    </div>
+    <div class="readout" aria-live="polite">
+      <p id="play-n"></p>
+      <p id="play-ratio"></p>
+      <p id="play-axis"></p>
+      <p id="play-cost" class="muted"></p>
+    </div>
+    <div class="budget" aria-hidden="true"><div id="budget-fill"></div></div>
+    <figure class="trace">
+      <svg id="trace" viewBox="0 0 120 36" preserveAspectRatio="none" role="img" aria-labelledby="trace-title" focusable="false">
+        <title id="trace-title"></title>
+        <polyline id="trace-line" fill="none" stroke="#40d0e0" stroke-width="1.2" vector-effect="non-scaling-stroke"></polyline>
+      </svg>
+    </figure>
+    <div class="row">
+      <button id="btn-s1" class="btn" type="button" aria-keyshortcuts="s"></button>
+      <button id="btn-s5" class="btn" type="button" aria-keyshortcuts="f"></button>
+      <button id="btn-commit" class="btn primary" type="button" aria-keyshortcuts="c"></button>
+    </div>
+    <p id="play-msg" class="muted" aria-live="polite"></p>
+    <p id="play-hint" class="muted small-text"></p>
+  </section>
+
+  <section id="s-commit" class="card" aria-labelledby="commit-heading" hidden>
+    <h2 id="commit-heading"></h2>
+    <p id="commit-question" class="lead"></p>
+    <label for="commit-slider" id="commit-slider-label"></label>
+    <div class="sliderrow">
+      <input id="commit-slider" type="range" min="1" max="99" step="1" value="50">
+      <output id="commit-value" for="commit-slider"></output>
+    </div>
+    <p id="commit-note" class="muted"></p>
+    <div class="row"><button id="btn-submit-claim" class="btn primary" type="button"></button></div>
+  </section>
+
+  <section id="s-review" class="card" aria-labelledby="review-heading" hidden>
+    <h2 id="review-heading"></h2>
+    <blockquote id="review-says"></blockquote>
+    <div class="plotwrap small">
+      <svg id="rplot" class="plot" viewBox="-5 -5 10 10" role="img" aria-labelledby="rplot-title" focusable="false">
+        <title id="rplot-title"></title>
+        <g id="rplot-grid"></g><g id="rplot-pts"></g><g id="rplot-axes"></g>
+      </svg>
+    </div>
+    <p id="review-ratio" class="lead"></p>
+    <p id="review-ref" class="muted"></p>
+    <p id="review-verdict" class="verdict"></p>
+    <label for="review-slider" id="review-slider-label"></label>
+    <div class="sliderrow">
+      <input id="review-slider" type="range" min="1" max="99" step="1" value="50">
+      <output id="review-value" for="review-slider"></output>
+    </div>
+    <div class="row"><button id="btn-final" class="btn primary" type="button"></button></div>
+  </section>
+
+  <section id="s-result" class="card" aria-labelledby="result-heading" hidden>
+    <h2 id="result-heading"></h2>
+    <div class="plotwrap small">
+      <svg id="xplot" class="plot" viewBox="-5 -5 10 10" role="img" aria-labelledby="xplot-title" focusable="false">
+        <title id="xplot-title"></title>
+        <g id="xplot-grid"></g><g id="xplot-pts"></g><g id="xplot-axes"></g>
+      </svg>
+    </div>
+    <p id="result-truth" class="lead"></p>
+    <table class="scores"><tbody id="result-rows"></tbody></table>
+    <p id="result-ideal" class="muted"></p>
+    <p id="result-best" class="best" hidden></p>
+    <article class="lesson" aria-labelledby="lesson-title">
+      <h3 id="lesson-heading"></h3>
+      <h4 id="lesson-title"></h4>
+      <p id="lesson-body"></p>
+    </article>
+    <h3 id="share-heading"></h3>
+    <pre id="share-text" tabindex="0"></pre>
+    <div class="row">
+      <button id="btn-share" class="btn primary" type="button"></button>
+      <button id="btn-challenge" class="btn" type="button"></button>
+      <button id="btn-practice" class="btn" type="button"></button>
+    </div>
+    <p id="result-msg" class="muted" aria-live="polite"></p>
+    <p id="result-notcounted" class="muted" hidden></p>
+    <h3 id="stats-heading"></h3>
+    <ul id="stats-list" class="stats"></ul>
+  </section>
+</main>
+
+<div id="help" class="modal" role="dialog" aria-modal="true" aria-labelledby="help-heading" hidden>
+  <div class="modal-box">
+    <h2 id="help-heading"></h2>
+    <p id="help-p1"></p><p id="help-p2"></p><p id="help-p3"></p><p id="help-p4"></p><p id="help-p5"></p>
+    <button id="btn-help-close" class="btn primary" type="button"></button>
+  </div>
+</div>
+
+<footer class="foot">
+  <p id="footer-privacy"></p>
+  <p id="footer-disclaimer"></p>
+  <p id="footer-license"></p>
+</footer>
+
+<script>
+/*
+ * Crystallize strings. To add a language, copy the `en` block, translate the values,
+ * keep every {placeholder}, and add the language to LANGS. tests/i18n.test.js checks
+ * key and placeholder parity for every language.
+ */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.CrystallizeI18n = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  var en = {
+    'meta.name': 'English',
+    'meta.code': 'EN',
+    'doc.title': 'Crystallize: a two-minute reasoning game',
+    'app.title': 'CRYSTALLIZE',
+    'app.tagline': 'When does noise become a finding?',
+    'tag.synthetic': 'SYNTHETIC educational game',
+    'btn.help': 'How to play',
+    'btn.lang': 'Language',
+    'btn.close': 'Close',
+
+    'intro.heading': 'Day {day}  |  {date}',
+    'intro.heading_seed': 'Puzzle {seed}',
+    'intro.mode_daily': 'Daily puzzle: the same data for everyone who plays this date.',
+    'intro.mode_challenge': 'Challenge puzzle (seed {seed}).',
+    'intro.mode_practice': 'Practice puzzle (seed {seed}).',
+    'intro.beat': 'A colleague scored {best}. Can you beat it?',
+    'intro.question': 'This instrument emits noisy 2-D readings. Does it carry a hidden direction, or is it pure noise?',
+    'intro.prior': 'Base rate: {pct}% of instruments like this one carry a hidden direction.',
+    'intro.rules': 'Reveal readings one at a time (each costs {cost} points, up to {max}). When you are ready, state how likely a hidden direction is. A reviewer will then replicate your claim on {repl} fresh readings and you may revise.',
+    'intro.start': 'Start',
+    'intro.already': 'You already played today: score {score}.',
+    'intro.see_result': 'See your result',
+
+    'play.n': 'Readings revealed: {n} of {max}',
+    'play.ratio': 'Elongation (largest / smallest variance): {ratio}',
+    'play.axis': 'Axis estimate: {deg} degrees',
+    'play.cost': 'Cost so far: {cost} points',
+    'play.plot': 'Scatter plot of {n} readings with the estimated principal axis',
+    'play.trace': 'Elongation as readings accumulate',
+    'play.sample1': 'Reveal 1',
+    'play.sample5': 'Reveal 5',
+    'play.commit': 'Commit to a claim',
+    'play.min': 'Reveal at least {min} readings before you commit.',
+    'play.hint': 'Keys: S reveal 1, F reveal 5, C commit.',
+    'play.budget_out': 'Budget used up. Time to commit.',
+
+    'commit.heading': 'Your claim',
+    'commit.question': 'How likely is it that this instrument carries a hidden direction?',
+    'commit.slider': 'Probability of a hidden direction',
+    'commit.value': '{pct}%',
+    'commit.note': 'Scored by the Brier rule: your expected score is highest when you report what you actually believe. Confident and wrong costs the most.',
+    'commit.submit': 'Submit to peer review',
+
+    'review.heading': 'Reviewer 2',
+    'review.says': 'Reviewer 2: "Interesting, but I will replicate it. Same axis as you claimed ({deg} degrees), {repl} fresh readings, one pre-registered test."',
+    'review.ratio': 'Variance along your axis divided by variance across it: {ratio}',
+    'review.ref': 'Under pure noise this ratio exceeds {thr} only about 5% of the time (F distribution, 20 and 20 degrees of freedom).',
+    'review.supports': 'Verdict: the replication supports your axis (ratio at or above {thr}).',
+    'review.not': 'Verdict: the replication does not support your axis (ratio below {thr}). That is not a refutation: a small replication can miss a real effect.',
+    'review.plot': 'Scatter plot of {repl} replication readings with your claimed axis',
+    'review.revise': 'Revise your probability (or keep it)',
+    'review.final': 'Final answer',
+
+    'result.heading': 'Result',
+    'result.truth_real': 'Truth: this instrument carried a hidden direction at {deg} degrees (signal strength {tau} times the noise).',
+    'result.truth_null': 'Truth: pure noise. There was no hidden direction.',
+    'result.row_first': 'First claim ({pct}%): calibration',
+    'result.row_second': 'Revised claim ({pct}%): calibration',
+    'result.row_cost': 'Sampling cost ({n} readings)',
+    'result.row_total': 'Round score',
+    'result.ideal': 'Reference observer who knows how the data were generated, stopping where you did: {ideal}.',
+    'result.new_best': 'New personal best.',
+    'result.lesson': 'Why this matters',
+    'result.stats': 'Your record',
+    'result.share': 'Copy share card',
+    'result.challenge': 'Copy challenge link',
+    'result.practice': 'Play a practice puzzle',
+    'result.weight_note': 'Each claim counts for half of the calibration score; the sampling cost is subtracted once.',
+    'result.copied': 'Copied to the clipboard.',
+    'result.copy_fail': 'Copy failed. Select the text above and copy it by hand.',
+    'result.share_preview': 'Share card',
+    'result.plot': 'Scatter plot of your readings with the estimated axis and the true axis',
+    'result.not_counted': 'This puzzle is not today\'s daily, so it does not count toward your streak.',
+
+    'stats.streak': 'Current streak: {n}',
+    'stats.best_streak': 'Longest streak: {n}',
+    'stats.played': 'Daily puzzles played: {n}',
+    'stats.best_daily': 'Best daily score: {n}',
+    'stats.best_practice': 'Best practice score: {n}',
+    'stats.none': 'none yet',
+
+    'help.heading': 'How to play',
+    'help.p1': 'Each puzzle hides one of two worlds. In one, the readings are pure noise. In the other, they are noise plus a hidden direction. The base rate of the second world is shown before you start.',
+    'help.p2': 'Reveal readings one by one. The gold line is the direction of largest variance in what you have seen so far. Every finite sample has one, even pure noise, so the line alone is not evidence.',
+    'help.p3': 'Commit when you choose, with a probability. After a reviewer replicates your claim you may revise it. Your score rewards calibration (the Brier rule) and charges for every reading.',
+    'help.p4': 'The daily puzzle is the same for everyone on the same date. Challenge links carry the seed in the address, so a colleague plays the same data.',
+    'help.p5': 'Everything is synthetic and runs on your device. No accounts, no network calls, nothing is stored outside this browser.',
+
+    'footer.privacy': 'Privacy: no accounts, no trackers, no network calls. Your record stays in this browser (local storage) and nothing leaves your device.',
+    'footer.disclaimer': 'SYNTHETIC educational game. Not clinical, not medical advice, no real patients or data.',
+    'footer.license': 'By Jean-François Brisson, Spark AI NLP. AGPL-3.0-only. Version {version}.',
+
+    'share.title': 'CRYSTALLIZE #{day}  {date}',
+    'share.title_seed': 'CRYSTALLIZE  seed {seed}',
+    'share.score': 'Score {score}  (reference {ideal})',
+    'share.samples': 'Readings {n} of {max}',
+    'share.conviction': 'Conviction {conv}%',
+    'share.review_yes': 'Replication: supports',
+    'share.review_no': 'Replication: no support',
+    'share.calibration': 'Score',
+    'share.synthetic': 'Synthetic educational game',
+
+    'lesson.small_samples.title': 'Small samples exaggerate',
+    'lesson.small_samples.body': 'With few readings, the largest-variance direction is a noisy estimate and an elongated cloud is easy to get from noise alone. Estimates that are noisy are also easier to overstate. Fixing the sample size in advance, or using a design that accounts for looking early, keeps the error rate honest.',
+    'lesson.pareidolia.title': 'Every sample has a principal axis',
+    'lesson.pareidolia.body': 'A finite sample always has a direction of largest variance, even when the source is pure noise. The elongation of the cloud only means something when compared with how elongated noise of the same size usually is. Pattern-finding without that comparison produces false discoveries.',
+    'lesson.replication_chance.title': 'A replication can pass by chance',
+    'lesson.replication_chance.body': 'A test with a 5% false-positive rate passes about one time in twenty on pure noise. A single supportive replication raises confidence but does not settle a question; several independent ones, with their sample sizes, matter more than one.',
+    'lesson.replication_power.title': 'A failed replication is not a refutation',
+    'lesson.replication_power.body': 'With only 20 fresh readings the test has limited power: a real but modest effect can miss the threshold. A non-significant result means the data did not clear the bar, not that the effect is absent. Report effect sizes and intervals, not only pass or fail.',
+    'lesson.overconfidence.title': 'Calibration: confident and wrong costs the most',
+    'lesson.overconfidence.body': 'A forecaster is calibrated when claims made at 80% come true about 80% of the time. The Brier score is a strictly proper scoring rule: reporting your honest belief maximizes your expected score, and extreme probabilities that miss are punished hardest. Ref: Brier (1950); Gneiting and Raftery (2007).',
+    'lesson.underconfidence.title': 'Underconfidence leaves points on the table',
+    'lesson.underconfidence.body': 'The evidence here was strong enough that a reference observer would have committed with high probability. Hedging toward 50% is safe but scores little. Calibration cuts both ways: report what the data support, no more and no less.',
+    'lesson.winners_curse.title': 'The winner\'s curse',
+    'lesson.winners_curse.body': 'Results selected because they crossed a threshold tend to overestimate the true effect, most of all in small samples. An early, striking result is the one most likely to shrink on replication.',
+    'lesson.base_rate.title': 'Base rates matter',
+    'lesson.base_rate.body': 'When true effects are rare, a larger share of positive findings are false even at a 5% significance level. The probability that a positive result is true depends on the prior probability, the power and the false-positive rate. Ref: Ioannidis (2005).',
+    'lesson.info_cost.title': 'Information has a price',
+    'lesson.info_cost.body': 'Each extra reading costs something real: time, money, participants. The sensible time to stop is when one more reading is unlikely to change your decision enough to pay for itself. Sampling to the budget is rarely the best plan.',
+    'lesson.optional_stopping.title': 'Optional stopping inflates false positives',
+    'lesson.optional_stopping.body': 'Checking the data after every observation and stopping when it looks convincing raises the false-positive rate well above the nominal level unless the analysis is designed for it (sequential methods). Decide the stopping rule before you look. Ref: Simmons, Nelson and Simonsohn (2011).'
+  };
+
+  var fr = {
+    'meta.name': 'Fran\u00e7ais',
+    'meta.code': 'FR',
+    'doc.title': 'Crystallize : un jeu de raisonnement de deux minutes',
+    'app.title': 'CRYSTALLIZE',
+    'app.tagline': 'Quand le bruit devient-il une d\u00e9couverte ?',
+    'tag.synthetic': 'Jeu \u00e9ducatif SYNTH\u00c9TIQUE',
+    'btn.help': 'Comment jouer',
+    'btn.lang': 'Langue',
+    'btn.close': 'Fermer',
+
+    'intro.heading': 'Jour {day}  |  {date}',
+    'intro.heading_seed': 'Puzzle {seed}',
+    'intro.mode_daily': 'Puzzle du jour : les m\u00eames donn\u00e9es pour tous ceux qui jouent cette date.',
+    'intro.mode_challenge': 'Puzzle d\u00e9fi (graine {seed}).',
+    'intro.mode_practice': 'Puzzle d\'entra\u00eenement (graine {seed}).',
+    'intro.beat': 'Un coll\u00e8gue a obtenu {best}. Pouvez-vous faire mieux ?',
+    'intro.question': 'Cet instrument \u00e9met des mesures 2D bruit\u00e9es. Porte-t-il une direction cach\u00e9e, ou est-ce du bruit pur ?',
+    'intro.prior': 'Taux de base : {pct} % des instruments de ce type portent une direction cach\u00e9e.',
+    'intro.rules': 'R\u00e9v\u00e9lez les mesures une \u00e0 une (chacune co\u00fbte {cost} points, jusqu\'\u00e0 {max}). Quand vous \u00eates pr\u00eat, indiquez la probabilit\u00e9 d\'une direction cach\u00e9e. Un relecteur r\u00e9p\u00e8te ensuite votre affirmation sur {repl} nouvelles mesures et vous pouvez r\u00e9viser.',
+    'intro.start': 'Commencer',
+    'intro.already': 'Vous avez d\u00e9j\u00e0 jou\u00e9 aujourd\'hui : score {score}.',
+    'intro.see_result': 'Voir votre r\u00e9sultat',
+
+    'play.n': 'Mesures r\u00e9v\u00e9l\u00e9es : {n} sur {max}',
+    'play.ratio': 'Allongement (plus grande / plus petite variance) : {ratio}',
+    'play.axis': 'Axe estim\u00e9 : {deg} degr\u00e9s',
+    'play.cost': 'Co\u00fbt jusqu\'ici : {cost} points',
+    'play.plot': 'Nuage de {n} mesures avec l\'axe principal estim\u00e9',
+    'play.trace': 'Allongement au fil des mesures',
+    'play.sample1': 'R\u00e9v\u00e9ler 1',
+    'play.sample5': 'R\u00e9v\u00e9ler 5',
+    'play.commit': 'S\'engager sur une affirmation',
+    'play.min': 'R\u00e9v\u00e9lez au moins {min} mesures avant de vous engager.',
+    'play.hint': 'Touches : S r\u00e9v\u00e8le 1, F r\u00e9v\u00e8le 5, C engage.',
+    'play.budget_out': 'Budget \u00e9puis\u00e9. Il est temps de s\'engager.',
+
+    'commit.heading': 'Votre affirmation',
+    'commit.question': 'Quelle est la probabilit\u00e9 que cet instrument porte une direction cach\u00e9e ?',
+    'commit.slider': 'Probabilit\u00e9 d\'une direction cach\u00e9e',
+    'commit.value': '{pct} %',
+    'commit.note': 'Not\u00e9 par la r\u00e8gle de Brier : votre score attendu est maximal quand vous donnez ce que vous croyez vraiment. \u00catre s\u00fbr et avoir tort co\u00fbte le plus cher.',
+    'commit.submit': 'Soumettre \u00e0 la relecture',
+
+    'review.heading': 'Relecteur 2',
+    'review.says': 'Relecteur 2 : \u00ab Int\u00e9ressant, mais je vais le r\u00e9pliquer. M\u00eame axe que celui affirm\u00e9 ({deg} degr\u00e9s), {repl} nouvelles mesures, un seul test pr\u00e9enregistr\u00e9. \u00bb',
+    'review.ratio': 'Variance le long de votre axe divis\u00e9e par la variance en travers : {ratio}',
+    'review.ref': 'Sous du bruit pur, ce rapport d\u00e9passe {thr} seulement environ 5 % du temps (loi F, 20 et 20 degr\u00e9s de libert\u00e9).',
+    'review.supports': 'Verdict : la r\u00e9plication appuie votre axe (rapport \u2265 {thr}).',
+    'review.not': 'Verdict : la r\u00e9plication n\'appuie pas votre axe (rapport < {thr}). Ce n\'est pas une r\u00e9futation : une petite r\u00e9plication peut manquer un effet r\u00e9el.',
+    'review.plot': 'Nuage de {repl} mesures de r\u00e9plication avec votre axe affirm\u00e9',
+    'review.revise': 'R\u00e9visez votre probabilit\u00e9 (ou gardez-la)',
+    'review.final': 'R\u00e9ponse finale',
+
+    'result.heading': 'R\u00e9sultat',
+    'result.truth_real': 'V\u00e9rit\u00e9 : cet instrument portait une direction cach\u00e9e \u00e0 {deg} degr\u00e9s (signal de {tau} fois le bruit).',
+    'result.truth_null': 'V\u00e9rit\u00e9 : du bruit pur. Il n\'y avait aucune direction cach\u00e9e.',
+    'result.row_first': 'Premi\u00e8re affirmation ({pct} %) : calibration',
+    'result.row_second': 'Affirmation r\u00e9vis\u00e9e ({pct} %) : calibration',
+    'result.row_cost': 'Co\u00fbt d\'\u00e9chantillonnage ({n} mesures)',
+    'result.row_total': 'Score de la manche',
+    'result.ideal': 'Observateur de r\u00e9f\u00e9rence qui conna\u00eet la g\u00e9n\u00e9ration des donn\u00e9es, s\'arr\u00eatant o\u00f9 vous vous \u00eates arr\u00eat\u00e9 : {ideal}.',
+    'result.new_best': 'Nouveau record personnel.',
+    'result.lesson': 'Pourquoi c\'est important',
+    'result.stats': 'Votre dossier',
+    'result.share': 'Copier la carte de partage',
+    'result.challenge': 'Copier le lien de d\u00e9fi',
+    'result.practice': 'Jouer un puzzle d\'entra\u00eenement',
+    'result.weight_note': 'Chaque affirmation compte pour la moiti\u00e9 du score de calibration ; le co\u00fbt d\'\u00e9chantillonnage est soustrait une fois.',
+    'result.copied': 'Copi\u00e9 dans le presse-papiers.',
+    'result.copy_fail': 'La copie a \u00e9chou\u00e9. S\u00e9lectionnez le texte ci-dessus et copiez-le \u00e0 la main.',
+    'result.share_preview': 'Carte de partage',
+    'result.plot': 'Nuage de vos mesures avec l\'axe estim\u00e9 et l\'axe r\u00e9el',
+    'result.not_counted': 'Ce puzzle n\'est pas celui du jour : il ne compte pas dans votre s\u00e9rie.',
+
+    'stats.streak': 'S\u00e9rie en cours : {n}',
+    'stats.best_streak': 'Plus longue s\u00e9rie : {n}',
+    'stats.played': 'Puzzles quotidiens jou\u00e9s : {n}',
+    'stats.best_daily': 'Meilleur score quotidien : {n}',
+    'stats.best_practice': 'Meilleur score d\'entra\u00eenement : {n}',
+    'stats.none': 'aucun pour l\'instant',
+
+    'help.heading': 'Comment jouer',
+    'help.p1': 'Chaque puzzle cache l\'un de deux mondes. Dans l\'un, les mesures sont du bruit pur. Dans l\'autre, ce sont du bruit plus une direction cach\u00e9e. Le taux de base du second monde est affich\u00e9 avant de commencer.',
+    'help.p2': 'R\u00e9v\u00e9lez les mesures une par une. La ligne or est la direction de plus grande variance de ce que vous avez vu. Tout \u00e9chantillon fini en a une, m\u00eame du bruit pur : la ligne seule n\'est donc pas une preuve.',
+    'help.p3': 'Engagez-vous quand vous voulez, avec une probabilit\u00e9. Apr\u00e8s la r\u00e9plication par un relecteur, vous pouvez r\u00e9viser. Le score r\u00e9compense la calibration (r\u00e8gle de Brier) et fait payer chaque mesure.',
+    'help.p4': 'Le puzzle du jour est le m\u00eame pour tous \u00e0 la m\u00eame date. Les liens de d\u00e9fi portent la graine dans l\'adresse : un coll\u00e8gue joue les m\u00eames donn\u00e9es.',
+    'help.p5': 'Tout est synth\u00e9tique et s\'ex\u00e9cute sur votre appareil. Aucun compte, aucun appel r\u00e9seau, rien n\'est conserv\u00e9 hors de ce navigateur.',
+
+    'footer.privacy': 'Confidentialit\u00e9 : aucun compte, aucun traceur, aucun appel r\u00e9seau. Votre dossier reste dans ce navigateur (stockage local) et rien ne quitte votre appareil.',
+    'footer.disclaimer': 'Jeu \u00e9ducatif SYNTH\u00c9TIQUE. Ni clinique, ni avis m\u00e9dical, aucun patient ni donn\u00e9e r\u00e9els.',
+    'footer.license': 'Par Jean-Fran\u00e7ois Brisson, Spark AI NLP. AGPL-3.0-only. Version {version}.',
+
+    'share.title': 'CRYSTALLIZE #{day}  {date}',
+    'share.title_seed': 'CRYSTALLIZE  graine {seed}',
+    'share.score': 'Score {score}  (r\u00e9f\u00e9rence {ideal})',
+    'share.samples': 'Mesures {n} sur {max}',
+    'share.conviction': 'Conviction {conv} %',
+    'share.review_yes': 'R\u00e9plication : appuie',
+    'share.review_no': 'R\u00e9plication : n\'appuie pas',
+    'share.calibration': 'Score',
+    'share.synthetic': 'Jeu \u00e9ducatif synth\u00e9tique',
+
+    'lesson.small_samples.title': 'Les petits \u00e9chantillons exag\u00e8rent',
+    'lesson.small_samples.body': 'Avec peu de mesures, la direction de plus grande variance est une estimation bruit\u00e9e, et un nuage allong\u00e9 vient facilement du bruit seul. Une estimation bruit\u00e9e est aussi plus facile \u00e0 surestimer. Fixer la taille de l\'\u00e9chantillon \u00e0 l\'avance, ou utiliser un plan qui tient compte des regards pr\u00e9coces, garde le taux d\'erreur honn\u00eate.',
+    'lesson.pareidolia.title': 'Tout \u00e9chantillon a un axe principal',
+    'lesson.pareidolia.body': 'Un \u00e9chantillon fini a toujours une direction de plus grande variance, m\u00eame si la source est du bruit pur. L\'allongement du nuage ne signifie quelque chose que s\'il est compar\u00e9 \u00e0 l\'allongement habituel d\'un bruit de m\u00eame taille. Chercher des motifs sans cette comparaison produit de fausses d\u00e9couvertes.',
+    'lesson.replication_chance.title': 'Une r\u00e9plication peut r\u00e9ussir par hasard',
+    'lesson.replication_chance.body': 'Un test dont le taux de faux positifs est de 5 % r\u00e9ussit environ une fois sur vingt sur du bruit pur. Une r\u00e9plication favorable augmente la confiance sans trancher la question ; plusieurs r\u00e9plications ind\u00e9pendantes, avec leurs tailles d\'\u00e9chantillon, comptent davantage qu\'une seule.',
+    'lesson.replication_power.title': 'Une r\u00e9plication \u00e9chou\u00e9e n\'est pas une r\u00e9futation',
+    'lesson.replication_power.body': 'Avec seulement 20 nouvelles mesures, le test a une puissance limit\u00e9e : un effet r\u00e9el mais modeste peut manquer le seuil. Un r\u00e9sultat non significatif signifie que les donn\u00e9es n\'ont pas franchi la barre, pas que l\'effet est absent. Rapportez les tailles d\'effet et les intervalles, pas seulement r\u00e9ussite ou \u00e9chec.',
+    'lesson.overconfidence.title': 'Calibration : \u00eatre s\u00fbr et avoir tort co\u00fbte le plus cher',
+    'lesson.overconfidence.body': 'Un pr\u00e9visionniste est calibr\u00e9 quand les affirmations \u00e0 80 % se r\u00e9alisent environ 80 % du temps. Le score de Brier est une r\u00e8gle de notation strictement propre : donner votre croyance honn\u00eate maximise votre score attendu, et les probabilit\u00e9s extr\u00eames qui se trompent sont punies le plus fort. R\u00e9f. : Brier (1950) ; Gneiting et Raftery (2007).',
+    'lesson.underconfidence.title': 'La sous-confiance laisse des points sur la table',
+    'lesson.underconfidence.body': 'Les preuves \u00e9taient ici assez fortes pour qu\'un observateur de r\u00e9f\u00e9rence s\'engage avec une probabilit\u00e9 \u00e9lev\u00e9e. Se replier vers 50 % est prudent mais rapporte peu. La calibration vaut dans les deux sens : rapportez ce que les donn\u00e9es soutiennent, ni plus ni moins.',
+    'lesson.winners_curse.title': 'La mal\u00e9diction du gagnant',
+    'lesson.winners_curse.body': 'Les r\u00e9sultats retenus parce qu\'ils ont franchi un seuil tendent \u00e0 surestimer l\'effet r\u00e9el, surtout avec de petits \u00e9chantillons. Un r\u00e9sultat pr\u00e9coce et frappant est celui qui r\u00e9tr\u00e9cit le plus probablement \u00e0 la r\u00e9plication.',
+    'lesson.base_rate.title': 'Les taux de base comptent',
+    'lesson.base_rate.body': 'Quand les vrais effets sont rares, une plus grande part des r\u00e9sultats positifs sont faux, m\u00eame au seuil de 5 %. La probabilit\u00e9 qu\'un r\u00e9sultat positif soit vrai d\u00e9pend de la probabilit\u00e9 a priori, de la puissance et du taux de faux positifs. R\u00e9f. : Ioannidis (2005).',
+    'lesson.info_cost.title': 'L\'information a un prix',
+    'lesson.info_cost.body': 'Chaque mesure suppl\u00e9mentaire co\u00fbte quelque chose de r\u00e9el : temps, argent, participants. Le bon moment pour s\'arr\u00eater est quand une mesure de plus a peu de chances de changer assez votre d\u00e9cision pour se rentabiliser. \u00c9chantillonner jusqu\'au budget est rarement le meilleur plan.',
+    'lesson.optional_stopping.title': 'L\'arr\u00eat optionnel gonfle les faux positifs',
+    'lesson.optional_stopping.body': 'Regarder les donn\u00e9es apr\u00e8s chaque observation et s\'arr\u00eater quand elles semblent convaincantes fait monter le taux de faux positifs bien au-dessus du niveau nominal, sauf si l\'analyse est con\u00e7ue pour cela (m\u00e9thodes s\u00e9quentielles). Fixez la r\u00e8gle d\'arr\u00eat avant de regarder. R\u00e9f. : Simmons, Nelson et Simonsohn (2011).'
+  };
+
+  var LANGS = { en: en, fr: fr };
+
+  function t(lang, key, vars) {
+    var dict = LANGS[lang] || LANGS.en;
+    var s = key in dict ? dict[key] : (key in LANGS.en ? LANGS.en[key] : key);
+    return String(s).replace(/\{(\w+)\}/g, function (m, k) { return vars && k in vars ? vars[k] : m; });
+  }
+
+  function detectLang(nav) {
+    var l = String((nav && (nav.language || (nav.languages && nav.languages[0]))) || 'en').toLowerCase().slice(0, 2);
+    return LANGS[l] ? l : 'en';
+  }
+
+  return { LANGS: LANGS, t: t, detectLang: detectLang, DEFAULT: 'en' };
+});
+</script>
+<script>
+/*
+ * Crystallize: pure game logic (SYNTHETIC educational game).
+ *
+ * Seeded RNG, instance generator, evidence statistics, an exact Bayesian
+ * reference observer for the generator, scoring, replication, lessons, streaks,
+ * hash links and the plain-text share card. No DOM, no network, no storage.
+ *
+ * Copyright (c) 2026 Jean-François Brisson, Spark AI NLP. AGPL-3.0-only.
+ */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.CrystallizeGame = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  var VERSION = '0.1.0';
+  var GEN = 'crystallize/v1/';           // generator namespace: changing it changes every puzzle
+  var EPOCH = '2026-10-23';              // day number 1
+  var PRIORS = [0.2, 0.35, 0.5, 0.65];   // share of instruments that carry a hidden direction
+  var TAU = [0.7, 1.0, 1.4];             // signal amplitude (noise sigma is 1), equally likely
+  var MAX_SAMPLES = 60;
+  var MIN_SAMPLES = 5;
+  var REPL_N = 20;                       // fresh samples in the reviewer's replication
+  var COST = 0.8;                        // points per sample revealed
+  var P_MIN = 0.01, P_MAX = 0.99;
+  var F95_20_20 = 2.1242;                // 95th percentile of F(20, 20)
+  var THETA_STEPS = 180;
+
+  /* ---------- seeded RNG (xmur3 hash + mulberry32) ---------- */
+
+  function hashStr(str) {
+    var h = 1779033703 ^ str.length;
+    for (var i = 0; i < str.length; i++) {
+      h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+      h = (h << 13) | (h >>> 19);
+    }
+    h = Math.imul(h ^ (h >>> 16), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    return (h ^ (h >>> 16)) >>> 0;
+  }
+
+  function mulberry32(a) {
+    return function () {
+      a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function makeRng(seedStr) { return mulberry32(hashStr(String(seedStr))); }
+
+  function gauss(rng) {
+    var u = 0;
+    while (u === 0) u = rng();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rng());
+  }
+
+  /* ---------- instance generator ---------- */
+
+  function makeInstance(seed) {
+    var rng = makeRng(GEN + seed);
+    var prior = PRIORS[Math.floor(rng() * PRIORS.length)];
+    var real = rng() < prior;
+    var tau = TAU[Math.floor(rng() * TAU.length)];
+    var theta = rng() * Math.PI;
+    var c = Math.cos(theta), s = Math.sin(theta);
+    var pts = [];
+    for (var i = 0; i < MAX_SAMPLES + REPL_N; i++) {
+      var x = gauss(rng), y = gauss(rng);
+      if (real) {
+        var a = tau * gauss(rng);
+        x += a * c; y += a * s;
+      }
+      pts.push([x, y]);
+    }
+    return { seed: String(seed), prior: prior, real: real, tau: real ? tau : 0, theta: real ? theta : null, points: pts };
+  }
+
+  /* ---------- evidence statistics ---------- */
+
+  function moments(points, n) {
+    var a = 0, b = 0, c = 0;
+    for (var i = 0; i < n; i++) {
+      var p = points[i];
+      a += p[0] * p[0]; b += p[0] * p[1]; c += p[1] * p[1];
+    }
+    return { n: n, a: a, b: b, c: c };
+  }
+
+  // second-moment matrix about the known origin; closed-form 2x2 eigen-decomposition
+  function stats(points, n) {
+    if (n <= 0) return { n: 0, lam1: 0, lam2: 0, ratio: 1, angle: 0 };
+    var m = moments(points, n);
+    var a = m.a / n, b = m.b / n, c = m.c / n;
+    var mid = (a + c) / 2, rad = Math.sqrt(((a - c) / 2) * ((a - c) / 2) + b * b);
+    var lam1 = mid + rad, lam2 = Math.max(mid - rad, 1e-12);
+    var angle = 0.5 * Math.atan2(2 * b, a - c);
+    if (angle < 0) angle += Math.PI;
+    return { n: n, lam1: lam1, lam2: lam2, ratio: lam1 / lam2, angle: angle };
+  }
+
+  function logSumExp(xs) {
+    var m = -Infinity;
+    for (var i = 0; i < xs.length; i++) if (xs[i] > m) m = xs[i];
+    var s = 0;
+    for (var j = 0; j < xs.length; j++) s += Math.exp(xs[j] - m);
+    return m + Math.log(s);
+  }
+
+  // Exact posterior P(real | first n points) for this generator: noise sigma 1, latent
+  // amplitude N(0, tau^2) along a uniform direction, tau uniform on TAU, prior as shown.
+  function posteriorReal(points, n, prior) {
+    if (n <= 0) return prior;
+    var m = moments(points, n);
+    var terms = [];
+    for (var k = 0; k < THETA_STEPS; k++) {
+      var th = (k + 0.5) * Math.PI / THETA_STEPS, cs = Math.cos(th), sn = Math.sin(th);
+      var q = m.a * cs * cs + 2 * m.b * cs * sn + m.c * sn * sn;   // n * u'Su
+      for (var j = 0; j < TAU.length; j++) {
+        var t2 = TAU[j] * TAU[j];
+        terms.push(-0.5 * n * Math.log(1 + t2) + 0.5 * (t2 / (1 + t2)) * q);
+      }
+    }
+    var logBF = logSumExp(terms) - Math.log(terms.length);
+    var logOdds = Math.log(prior / (1 - prior)) + logBF;
+    var p = 1 / (1 + Math.exp(-logOdds));
+    return Math.min(1 - 1e-9, Math.max(1e-9, p));
+  }
+
+  /* ---------- scoring ---------- */
+
+  function clampP(p) { return Math.min(P_MAX, Math.max(P_MIN, p)); }
+  function brier(p, truth) { var d = clampP(p) - (truth ? 1 : 0); return d * d; }
+  // 100 at a perfect report, 0 at 50%, negative when confidently wrong. Strictly proper.
+  function calibrationPoints(p, truth) { return 100 * (1 - 4 * brier(p, truth)); }
+  function samplingCost(n) { return COST * n; }
+
+  function roundScore(o) {
+    var s1 = calibrationPoints(o.p1, o.truth);
+    var s2 = calibrationPoints(o.p2, o.truth);
+    var cost = samplingCost(o.n);
+    return { s1: s1, s2: s2, cost: cost, total: 0.5 * s1 + 0.5 * s2 - cost };
+  }
+
+  /* ---------- reviewer replication ---------- */
+
+  // Pre-registered test on the claimed axis: variance along it over variance across it,
+  // on REPL_N fresh samples. Under pure noise this ratio follows F(20, 20).
+  function replication(inst, angle) {
+    var pts = inst.points.slice(MAX_SAMPLES, MAX_SAMPLES + REPL_N);
+    var cs = Math.cos(angle), sn = Math.sin(angle);
+    var along = 0, across = 0;
+    for (var i = 0; i < pts.length; i++) {
+      var u = pts[i][0] * cs + pts[i][1] * sn, v = -pts[i][0] * sn + pts[i][1] * cs;
+      along += u * u; across += v * v;
+    }
+    var ratio = along / Math.max(across, 1e-12);
+    return { points: pts, angle: angle, ratio: ratio, supports: ratio >= F95_20_20, threshold: F95_20_20 };
+  }
+
+  // points that the reference observer sees at the second stage: yours plus the replication
+  function stageTwoPoints(inst, n) {
+    return inst.points.slice(0, n).concat(inst.points.slice(MAX_SAMPLES, MAX_SAMPLES + REPL_N));
+  }
+
+  function referenceObserver(inst, n) {
+    var p1 = posteriorReal(inst.points, n, inst.prior);
+    var two = stageTwoPoints(inst, n);
+    var p2 = posteriorReal(two, two.length, inst.prior);
+    var sc = roundScore({ p1: p1, p2: p2, truth: inst.real, n: n });
+    return { p1: p1, p2: p2, score: sc.total };
+  }
+
+  /* ---------- lessons (accurate, short; text lives in i18n) ---------- */
+
+  function pickLesson(o) {
+    var claimedReal = Math.max(o.p1, o.p2) >= 0.6;
+    if (!o.truth && claimedReal) return o.n <= 20 ? 'small_samples' : 'pareidolia';
+    if (!o.truth && o.supports) return 'replication_chance';
+    if (o.truth && !o.supports) return 'replication_power';
+    if (brier(o.p1, o.truth) > 0.4) return 'overconfidence';
+    if (o.truth && o.ideal >= 0.8 && Math.max(o.p1, o.p2) < 0.6) return 'underconfidence';
+    if (o.truth && o.n <= 15 && o.p1 >= 0.8) return 'winners_curse';
+    if (o.prior <= 0.35) return 'base_rate';
+    if (o.n >= 50) return 'info_cost';
+    return 'optional_stopping';
+  }
+  var LESSON_KEYS = ['small_samples', 'pareidolia', 'replication_chance', 'replication_power',
+    'overconfidence', 'underconfidence', 'winners_curse', 'base_rate', 'info_cost', 'optional_stopping'];
+
+  /* ---------- days, streaks, hash links ---------- */
+
+  function dateIndex(str) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(str);
+    if (!m) return NaN;
+    return Math.round(Date.UTC(+m[1], +m[2] - 1, +m[3]) / 86400000);
+  }
+  function dayNumber(dateStr) { return dateIndex(dateStr) - dateIndex(EPOCH) + 1; }
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  function localDateString(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+  function dailySeed(dateStr) { return 'd' + dateStr; }
+  // the date behind a daily seed, or null for a free-form seed
+  function seedDate(seed) {
+    return seed.charAt(0) === 'd' && !isNaN(dateIndex(seed.slice(1))) ? seed.slice(1) : null;
+  }
+
+  function computeStreak(dates, today) {
+    var idx = {};
+    dates.forEach(function (d) { var i = dateIndex(d); if (!isNaN(i)) idx[i] = true; });
+    var days = Object.keys(idx).map(Number).sort(function (a, b) { return a - b; });
+    var best = 0, run = 0, prev = null;
+    days.forEach(function (d) { run = prev !== null && d === prev + 1 ? run + 1 : 1; prev = d; if (run > best) best = run; });
+    var t = dateIndex(today), cur = 0;
+    var d0 = idx[t] ? t : (idx[t - 1] ? t - 1 : null);
+    if (d0 !== null) { for (var d = d0; idx[d]; d--) cur++; }
+    return { current: cur, best: best };
+  }
+
+  var SEED_RE = /^[A-Za-z0-9_-]{1,24}$/;
+  function parseHash(hash) {
+    var out = { mode: 'daily', seed: null, date: null, best: null, lang: null };
+    var h = String(hash || '').replace(/^#/, '');
+    if (!h) return out;
+    h.split('&').forEach(function (kv) {
+      var i = kv.indexOf('='), k = i < 0 ? kv : kv.slice(0, i), v = i < 0 ? '' : kv.slice(i + 1);
+      if (k === 'd' && !isNaN(dateIndex(v))) { out.date = v; out.seed = dailySeed(v); out.mode = 'challenge'; }
+      else if (k === 's' && SEED_RE.test(v)) { out.seed = v; out.mode = 'challenge'; }
+      else if (k === 'b' && /^-?\d{1,4}$/.test(v)) out.best = parseInt(v, 10);
+      else if (k === 'l' && /^[a-z]{2}$/.test(v)) out.lang = v;
+    });
+    if (out.seed === null) out.best = null;
+    return out;
+  }
+  function buildChallengeHash(o) {
+    var parts = [];
+    if (o.date) parts.push('d=' + o.date); else parts.push('s=' + o.seed);
+    if (typeof o.best === 'number' && isFinite(o.best)) parts.push('b=' + Math.round(o.best));
+    if (o.lang) parts.push('l=' + o.lang);
+    return '#' + parts.join('&');
+  }
+
+  /* ---------- share card (plain text, no emoji) ---------- */
+
+  function bar(value, max, width) {
+    width = width || 10;
+    var f = Math.round(Math.min(1, Math.max(0, value / max)) * width);
+    return new Array(f + 1).join('\u2588') + new Array(width - f + 1).join('\u2591');
+  }
+
+  function fmt(str, vars) {
+    return String(str).replace(/\{(\w+)\}/g, function (m, k) { return vars && k in vars ? vars[k] : m; });
+  }
+
+  function buildShare(o) {
+    var L = o.labels, lines = [];
+    lines.push(o.seed ? fmt(L['share.title_seed'], { seed: o.seed }) : fmt(L['share.title'], { day: o.day, date: o.date }));
+    lines.push(fmt(L['share.score'], { score: Math.round(o.score), ideal: Math.round(o.ideal) }));
+    lines.push(fmt(L['share.samples'], { n: o.n, max: MAX_SAMPLES }));
+    lines.push(fmt(L['share.conviction'], { conv: Math.round(Math.abs(o.p2 - 0.5) * 200) }) + ' ' + fmt(L[o.supports ? 'share.review_yes' : 'share.review_no'], {}));
+    lines.push(L['share.calibration'] + ' ' + bar(o.score, 100, 10));
+    lines.push(L['share.synthetic']);
+    if (o.url) lines.push(o.url);
+    return lines.join('\n');
+  }
+
+  return {
+    VERSION: VERSION, EPOCH: EPOCH, PRIORS: PRIORS, TAU: TAU, MAX_SAMPLES: MAX_SAMPLES,
+    MIN_SAMPLES: MIN_SAMPLES, REPL_N: REPL_N, COST: COST, P_MIN: P_MIN, P_MAX: P_MAX,
+    F95_20_20: F95_20_20, LESSON_KEYS: LESSON_KEYS,
+    hashStr: hashStr, makeRng: makeRng, gauss: gauss,
+    makeInstance: makeInstance, stats: stats, posteriorReal: posteriorReal,
+    clampP: clampP, brier: brier, calibrationPoints: calibrationPoints, samplingCost: samplingCost,
+    roundScore: roundScore, replication: replication, stageTwoPoints: stageTwoPoints,
+    referenceObserver: referenceObserver, pickLesson: pickLesson,
+    dateIndex: dateIndex, dayNumber: dayNumber, localDateString: localDateString, dailySeed: dailySeed, seedDate: seedDate,
+    computeStreak: computeStreak, parseHash: parseHash, buildChallengeHash: buildChallengeHash,
+    bar: bar, fmt: fmt, buildShare: buildShare
+  };
+});
+</script>
+<script>
+/* Crystallize UI. DOM only; all logic lives in game.js. No network, no trackers. */
+(function () {
+  'use strict';
+  var G = window.CrystallizeGame, I = window.CrystallizeI18n;
+  var errors = [];
+  window.addEventListener('error', function (e) {
+    errors.push(String(e.message));
+    document.documentElement.setAttribute('data-errors', JSON.stringify(errors));
+  });
+
+  var $ = function (id) { return document.getElementById(id); };
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  var STORE_KEY = 'crystallize.v1';
+
+  /* ---------- storage (local only, failure tolerant) ---------- */
+  function loadStore() {
+    try {
+      var raw = window.localStorage.getItem(STORE_KEY);
+      var s = raw ? JSON.parse(raw) : {};
+      if (!s || typeof s !== 'object') s = {};
+      s.daily = s.daily && typeof s.daily === 'object' ? s.daily : {};
+      s.bestDaily = typeof s.bestDaily === 'number' ? s.bestDaily : null;
+      s.bestPractice = typeof s.bestPractice === 'number' ? s.bestPractice : null;
+      return s;
+    } catch (e) { return { daily: {}, bestDaily: null, bestPractice: null }; }
+  }
+  var store = loadStore();
+  function saveStore() { try { window.localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (e) { /* private mode */ } }
+
+  /* ---------- state ---------- */
+  var today = G.localDateString(new Date());
+  var hash = G.parseHash(window.location.hash);
+  var lang = hash.lang && I.LANGS[hash.lang] ? hash.lang : (store.lang && I.LANGS[store.lang] ? store.lang : I.detectLang(navigator));
+  var S = {
+    view: 'intro', mode: 'daily', seed: null, date: today, inst: null, n: 0, p1: null, p2: null,
+    rep: null, result: null, beat: null, newBest: false
+  };
+
+  function t(key, vars) { return I.t(lang, key, vars); }
+  function text(id, key, vars) { $(id).textContent = t(key, vars); }
+  function show(view) {
+    ['intro', 'play', 'commit', 'review', 'result'].forEach(function (v) { $('s-' + v).hidden = v !== view; });
+    S.view = view;
+  }
+  function focusHeading(id) { var h = $(id); h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: false }); }
+
+  /* ---------- svg helpers ---------- */
+  function el(name, attrs) {
+    var e = document.createElementNS(SVGNS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
+  function line(a, ang, half, attrs) {
+    var c = Math.cos(ang), s = Math.sin(ang);
+    attrs.x1 = -half * c; attrs.y1 = half * s; attrs.x2 = half * c; attrs.y2 = -half * s; attrs['stroke-linecap'] = 'round';
+    return el('line', attrs);
+  }
+  function drawGrid(g) {
+    clear(g);
+    for (var i = -4; i <= 4; i++) {
+      if (i === 0) continue;
+      g.appendChild(el('line', { x1: i, y1: -5, x2: i, y2: 5, stroke: '#16244f', 'stroke-width': 0.04 }));
+      g.appendChild(el('line', { x1: -5, y1: i, x2: 5, y2: i, stroke: '#16244f', 'stroke-width': 0.04 }));
+    }
+    g.appendChild(el('line', { x1: -5, y1: 0, x2: 5, y2: 0, stroke: '#2a3b6e', 'stroke-width': 0.06 }));
+    g.appendChild(el('line', { x1: 0, y1: -5, x2: 0, y2: 5, stroke: '#2a3b6e', 'stroke-width': 0.06 }));
+  }
+  function drawPlot(prefix, pts, n, opts) {
+    opts = opts || {};
+    drawGrid($(prefix + '-grid'));
+    var gp = $(prefix + '-pts'), ga = $(prefix + '-axes');
+    clear(gp); clear(ga);
+    for (var i = 0; i < n; i++) {
+      var x = Math.max(-4.9, Math.min(4.9, pts[i][0])), y = Math.max(-4.9, Math.min(4.9, pts[i][1]));
+      var last = opts.highlightLast && i === n - 1;
+      gp.appendChild(el('circle', { cx: x, cy: -y, r: last ? 0.17 : 0.12, fill: last ? '#e0c36a' : '#40d0e0', 'fill-opacity': last ? 1 : 0.8 }));
+    }
+    if (opts.trueAngle !== undefined && opts.trueAngle !== null) {
+      ga.appendChild(line(0, opts.trueAngle, 4.9, { stroke: '#40d0e0', 'stroke-width': 0.1, 'stroke-dasharray': '0.35 0.25' }));
+    }
+    if (opts.angle !== undefined && opts.angle !== null) {
+      var op = Math.min(1, 0.3 + Math.max(0, (opts.ratio || 1) - 1) / 2);
+      ga.appendChild(line(0, opts.angle, opts.half || 4.6, { stroke: '#c9a84c', 'stroke-width': 0.14, 'stroke-opacity': op }));
+    }
+    if (opts.cross !== undefined) {
+      ga.appendChild(line(0, opts.cross.angle, opts.cross.half, { stroke: '#eef2ff', 'stroke-width': 0.06, 'stroke-opacity': 0.35 }));
+    }
+  }
+
+  /* ---------- rendering ---------- */
+  function deg(a) { return Math.round(a * 180 / Math.PI) % 180; }
+  function f2(x) { return x.toFixed(2); }
+  function pts(x) { return String(Math.round(x)); }
+  function signed(x) { var r = Math.round(x); return (r > 0 ? '+' : '') + r; }
+
+  function renderStatic() {
+    document.documentElement.lang = lang;
+    document.title = t('doc.title');
+    text('app-title', 'app.title');
+    text('app-tagline', 'app.tagline');
+    text('tag-synthetic', 'tag.synthetic');
+    $('btn-help').textContent = t('btn.help');
+    $('btn-lang').textContent = t('meta.code');
+    $('btn-lang').setAttribute('aria-label', t('btn.lang') + ': ' + t('meta.name'));
+    ['p1', 'p2', 'p3', 'p4', 'p5'].forEach(function (k) { text('help-' + k, 'help.' + k); });
+    text('help-heading', 'help.heading');
+    text('btn-help-close', 'btn.close');
+    text('footer-privacy', 'footer.privacy');
+    text('footer-disclaimer', 'footer.disclaimer');
+    text('footer-license', 'footer.license', { version: G.VERSION });
+  }
+
+  function renderIntro() {
+    var seedLabel = S.seed;
+    var sd = G.seedDate(S.seed);
+    if (sd) text('intro-heading', 'intro.heading', { day: G.dayNumber(sd), date: sd });
+    else text('intro-heading', 'intro.heading_seed', { seed: S.seed });
+    if (S.mode === 'daily') text('intro-mode', 'intro.mode_daily');
+    else if (S.mode === 'challenge') text('intro-mode', 'intro.mode_challenge', { seed: seedLabel });
+    else text('intro-mode', 'intro.mode_practice', { seed: seedLabel });
+    var b = $('intro-beat');
+    b.hidden = S.beat === null;
+    if (S.beat !== null) b.textContent = t('intro.beat', { best: S.beat });
+    text('intro-question', 'intro.question');
+    var prior = G.makeInstance(S.seed).prior;
+    text('intro-prior', 'intro.prior', { pct: Math.round(prior * 100) });
+    text('intro-rules', 'intro.rules', { cost: G.COST, max: G.MAX_SAMPLES, repl: G.REPL_N });
+    text('btn-start', 'intro.start');
+    var done = S.mode === 'daily' && store.daily[today];
+    $('btn-start').hidden = !!done;
+    $('btn-see-result').hidden = !done;
+    $('intro-already').hidden = !done;
+    if (done) {
+      text('btn-see-result', 'intro.see_result');
+      text('intro-already', 'intro.already', { score: pts(done.score) });
+    }
+  }
+
+  function renderPlay() {
+    var inst = S.inst, n = S.n, st = G.stats(inst.points, n);
+    text('play-heading', 'play.plot', { n: n });
+    $('plot-title').textContent = t('play.plot', { n: n });
+    drawPlot('plot', inst.points, n, {
+      highlightLast: true, angle: n >= 2 ? st.angle : null, ratio: st.ratio,
+      half: Math.min(4.6, 1.8 * Math.sqrt(st.lam1)),
+      cross: n >= 2 ? { angle: st.angle + Math.PI / 2, half: Math.min(4.6, 1.8 * Math.sqrt(st.lam2)) } : undefined
+    });
+    text('play-n', 'play.n', { n: n, max: G.MAX_SAMPLES });
+    text('play-ratio', 'play.ratio', { ratio: n >= 2 ? f2(st.ratio) : '-' });
+    text('play-axis', 'play.axis', { deg: n >= 2 ? deg(st.angle) : '-' });
+    text('play-cost', 'play.cost', { cost: f2(G.samplingCost(n)) });
+    $('budget-fill').style.width = (100 * n / G.MAX_SAMPLES) + '%';
+    $('trace-title').textContent = t('play.trace');
+    var path = [];
+    for (var k = 2; k <= n; k++) {
+      var r = G.stats(inst.points, k).ratio;
+      path.push((120 * k / G.MAX_SAMPLES).toFixed(1) + ',' + (35 - Math.min(r, 6) / 6 * 33).toFixed(1));
+    }
+    $('trace-line').setAttribute('points', path.join(' '));
+    text('btn-s1', 'play.sample1');
+    text('btn-s5', 'play.sample5');
+    text('btn-commit', 'play.commit');
+    $('btn-s1').disabled = n >= G.MAX_SAMPLES;
+    $('btn-s5').disabled = n >= G.MAX_SAMPLES;
+    $('btn-commit').disabled = n < G.MIN_SAMPLES;
+    var msg = '';
+    if (n >= G.MAX_SAMPLES) msg = t('play.budget_out');
+    else if (n < G.MIN_SAMPLES) msg = t('play.min', { min: G.MIN_SAMPLES });
+    $('play-msg').textContent = msg;
+    text('play-hint', 'play.hint');
+  }
+
+  function sliderValue(id) { return parseInt($(id).value, 10) / 100; }
+  function showValue(id, outId) { $(outId).textContent = t('commit.value', { pct: $(id).value }); }
+
+  function renderCommit() {
+    text('commit-heading', 'commit.heading');
+    text('commit-question', 'commit.question');
+    text('commit-slider-label', 'commit.slider');
+    text('commit-note', 'commit.note');
+    text('btn-submit-claim', 'commit.submit');
+    showValue('commit-slider', 'commit-value');
+  }
+
+  function renderReview() {
+    var rep = S.rep, d = deg(rep.angle);
+    text('review-heading', 'review.heading');
+    text('review-says', 'review.says', { deg: d, repl: G.REPL_N });
+    $('rplot-title').textContent = t('review.plot', { repl: G.REPL_N });
+    drawPlot('rplot', rep.points, rep.points.length, { angle: rep.angle, ratio: rep.ratio, half: 4.6 });
+    text('review-ratio', 'review.ratio', { ratio: f2(rep.ratio) });
+    text('review-ref', 'review.ref', { thr: f2(rep.threshold) });
+    text('review-verdict', rep.supports ? 'review.supports' : 'review.not', { thr: f2(rep.threshold) });
+    text('review-slider-label', 'review.revise');
+    text('btn-final', 'review.final');
+    showValue('review-slider', 'review-value');
+  }
+
+  function seedRef() {
+    var sd = G.seedDate(S.seed);
+    return sd ? { date: sd } : { seed: S.seed };
+  }
+
+  function shareText(r) {
+    var labels = Object.assign({}, I.LANGS.en, I.LANGS[lang]);
+    var url = window.location.href.split('#')[0] + G.buildChallengeHash(Object.assign(seedRef(), { lang: lang }));
+    return G.buildShare({
+      labels: labels, day: G.dayNumber(G.seedDate(S.seed) || S.date), date: G.seedDate(S.seed) || S.date, seed: G.seedDate(S.seed) ? null : S.seed, score: r.sc.total, ideal: r.ref.score,
+      n: r.n, p2: r.p2, supports: r.supports, url: url
+    });
+  }
+
+  function computeResult(inst, n, p1, p2) {
+    var st = G.stats(inst.points, n);
+    var rep = G.replication(inst, st.angle);
+    var ref = G.referenceObserver(inst, n);
+    var sc = G.roundScore({ p1: p1, p2: p2, truth: inst.real, n: n });
+    return { inst: inst, n: n, p1: p1, p2: p2, st: st, rep: rep, ref: ref, sc: sc, supports: rep.supports };
+  }
+
+  function renderResult() {
+    var r = S.result, inst = r.inst;
+    text('result-heading', 'result.heading');
+    $('xplot-title').textContent = t('result.plot');
+    drawPlot('xplot', inst.points, r.n, {
+      angle: r.st.angle, ratio: r.st.ratio, half: 4.6, trueAngle: inst.real ? inst.theta : null
+    });
+    if (inst.real) text('result-truth', 'result.truth_real', { deg: deg(inst.theta), tau: inst.tau });
+    else text('result-truth', 'result.truth_null');
+    var rows = [
+      [t('result.row_first', { pct: Math.round(r.p1 * 100) }), signed(0.5 * r.sc.s1)],
+      [t('result.row_second', { pct: Math.round(r.p2 * 100) }), signed(0.5 * r.sc.s2)],
+      [t('result.row_cost', { n: r.n }), signed(-r.sc.cost)],
+      [t('result.row_total'), pts(r.sc.total)]
+    ];
+    var tb = $('result-rows');
+    clear(tb);
+    rows.forEach(function (row, i) {
+      var tr = document.createElement('tr');
+      if (i === rows.length - 1) tr.className = 'total';
+      row.forEach(function (c) { var td = document.createElement('td'); td.textContent = c; tr.appendChild(td); });
+      tb.appendChild(tr);
+    });
+    text('result-ideal', 'result.ideal', { ideal: pts(r.ref.score) });
+    var nb = $('result-best');
+    nb.hidden = !S.newBest;
+    if (S.newBest) text('result-best', 'result.new_best');
+    var lk = G.pickLesson({ truth: inst.real, p1: r.p1, p2: r.p2, n: r.n, prior: inst.prior, supports: r.supports, ideal: r.ref.p2 });
+    text('lesson-heading', 'result.lesson');
+    text('lesson-title', 'lesson.' + lk + '.title');
+    text('lesson-body', 'lesson.' + lk + '.body');
+    text('share-heading', 'result.share_preview');
+    $('share-text').textContent = shareText(r);
+    text('btn-share', 'result.share');
+    text('btn-challenge', 'result.challenge');
+    text('btn-practice', 'result.practice');
+    var nc = $('result-notcounted');
+    nc.hidden = S.mode === 'daily';
+    if (S.mode !== 'daily') text('result-notcounted', 'result.not_counted');
+    $('result-msg').textContent = '';
+    text('stats-heading', 'result.stats');
+    renderStats();
+    var wn = document.getElementById('result-weight');
+    if (!wn) {
+      wn = document.createElement('p'); wn.id = 'result-weight'; wn.className = 'muted small-text';
+      $('result-rows').parentNode.insertAdjacentElement('afterend', wn);
+    }
+    wn.textContent = t('result.weight_note');
+  }
+
+  function renderStats() {
+    var dates = Object.keys(store.daily);
+    var sk = G.computeStreak(dates, today);
+    var none = t('stats.none');
+    var items = [
+      t('stats.streak', { n: sk.current }), t('stats.best_streak', { n: sk.best }),
+      t('stats.played', { n: dates.length }),
+      t('stats.best_daily', { n: store.bestDaily === null ? none : store.bestDaily }),
+      t('stats.best_practice', { n: store.bestPractice === null ? none : store.bestPractice })
+    ];
+    var ul = $('stats-list');
+    clear(ul);
+    items.forEach(function (s) { var li = document.createElement('li'); li.textContent = s; ul.appendChild(li); });
+  }
+
+  function render() {
+    renderStatic();
+    if (S.view === 'intro') renderIntro();
+    else if (S.view === 'play') renderPlay();
+    else if (S.view === 'commit') renderCommit();
+    else if (S.view === 'review') renderReview();
+    else if (S.view === 'result') renderResult();
+  }
+
+  /* ---------- flow ---------- */
+  function newPuzzle(mode, seed, date, beat) {
+    S.mode = mode; S.seed = seed; S.date = date; S.beat = beat === undefined ? null : beat;
+    S.inst = null; S.n = 0; S.p1 = S.p2 = null; S.rep = null; S.result = null; S.newBest = false;
+    show('intro'); render(); focusHeading('intro-heading');
+  }
+  function start() {
+    S.inst = G.makeInstance(S.seed); S.n = 0;
+    show('play'); renderPlay(); focusHeading('play-heading');
+  }
+  function sample(k) {
+    if (S.view !== 'play') return;
+    S.n = Math.min(G.MAX_SAMPLES, S.n + k);
+    renderPlay();
+  }
+  function commit() {
+    if (S.view !== 'play' || S.n < G.MIN_SAMPLES) return;
+    var prior = S.inst.prior;
+    $('commit-slider').value = Math.round(prior * 100);
+    show('commit'); renderCommit(); focusHeading('commit-heading');
+  }
+  function submitClaim() {
+    S.p1 = G.clampP(sliderValue('commit-slider'));
+    var st = G.stats(S.inst.points, S.n);
+    S.rep = G.replication(S.inst, st.angle);
+    $('review-slider').value = Math.round(S.p1 * 100);
+    show('review'); renderReview(); focusHeading('review-heading');
+  }
+  function finalAnswer() {
+    S.p2 = G.clampP(sliderValue('review-slider'));
+    S.result = computeResult(S.inst, S.n, S.p1, S.p2);
+    var score = Math.round(S.result.sc.total);
+    S.newBest = false;
+    if (S.mode === 'daily') {
+      store.daily[today] = { score: score, n: S.n, p1: S.p1, p2: S.p2 };
+      if (store.bestDaily === null || score > store.bestDaily) { store.bestDaily = score; S.newBest = true; }
+    } else if (store.bestPractice === null || score > store.bestPractice) { store.bestPractice = score; S.newBest = true; }
+    saveStore();
+    show('result'); renderResult(); focusHeading('result-heading');
+  }
+  function showStoredResult() {
+    var d = store.daily[today];
+    S.inst = G.makeInstance(S.seed); S.n = d.n; S.p1 = d.p1; S.p2 = d.p2;
+    S.result = computeResult(S.inst, d.n, d.p1, d.p2); S.newBest = false;
+    show('result'); renderResult(); focusHeading('result-heading');
+  }
+
+  function copy(textValue, msgId) {
+    var done = function (ok) { $(msgId).textContent = t(ok ? 'result.copied' : 'result.copy_fail'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textValue).then(function () { done(true); }, function () { done(fallbackCopy(textValue)); });
+    } else done(fallbackCopy(textValue));
+  }
+  function fallbackCopy(v) {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = v; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      var ok = document.execCommand('copy'); document.body.removeChild(ta); return ok;
+    } catch (e) { return false; }
+  }
+  function challengeLink() {
+    var best = Math.round(S.result.sc.total);
+    return window.location.href.split('#')[0] + G.buildChallengeHash(Object.assign(seedRef(), { best: best, lang: lang }));
+  }
+  function randomSeed() {
+    var s = '';
+    var alphabet = 'abcdefghjkmnpqrstuvwxyz23456789';
+    for (var i = 0; i < 6; i++) s += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+    return 'p' + s;
+  }
+
+  /* ---------- events ---------- */
+  $('btn-start').addEventListener('click', start);
+  $('btn-see-result').addEventListener('click', showStoredResult);
+  $('btn-s1').addEventListener('click', function () { sample(1); });
+  $('btn-s5').addEventListener('click', function () { sample(5); });
+  $('btn-commit').addEventListener('click', commit);
+  $('btn-submit-claim').addEventListener('click', submitClaim);
+  $('btn-final').addEventListener('click', finalAnswer);
+  $('commit-slider').addEventListener('input', function () { showValue('commit-slider', 'commit-value'); });
+  $('review-slider').addEventListener('input', function () { showValue('review-slider', 'review-value'); });
+  $('btn-share').addEventListener('click', function () { copy($('share-text').textContent, 'result-msg'); });
+  $('btn-challenge').addEventListener('click', function () { copy(challengeLink(), 'result-msg'); });
+  $('btn-practice').addEventListener('click', function () {
+    if (window.history && window.history.replaceState) window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    newPuzzle('practice', randomSeed(), today);
+  });
+  $('btn-lang').addEventListener('click', function () {
+    var codes = Object.keys(I.LANGS);
+    lang = codes[(codes.indexOf(lang) + 1) % codes.length];
+    store.lang = lang; saveStore(); render();
+  });
+  var lastFocus = null;
+  function openHelp() { lastFocus = document.activeElement; $('help').hidden = false; $('btn-help-close').focus(); }
+  function closeHelp() { $('help').hidden = true; if (lastFocus) lastFocus.focus(); }
+  $('btn-help').addEventListener('click', openHelp);
+  $('btn-help-close').addEventListener('click', closeHelp);
+  $('help').addEventListener('click', function (e) { if (e.target === $('help')) closeHelp(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !$('help').hidden) { closeHelp(); return; }
+    if (e.ctrlKey || e.metaKey || e.altKey || !$('help').hidden) return;
+    var tag = (e.target && e.target.tagName) || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    var k = e.key.toLowerCase();
+    if (S.view === 'play') {
+      if (k === 's') sample(1); else if (k === 'f') sample(5); else if (k === 'c') commit();
+    }
+  });
+
+  /* ---------- boot ---------- */
+  function boot() {
+    var mode = 'daily', seed = G.dailySeed(today), date = today, beat = null;
+    if (hash.seed) {
+      if (hash.date === today) { mode = 'daily'; }
+      else { mode = 'challenge'; seed = hash.seed; date = hash.date || today; beat = hash.best; }
+      if (hash.date === today && hash.best !== null) beat = hash.best;
+    }
+    newPuzzle(mode, seed, date, beat);
+    window.__crystallize = { errors: errors, ready: true };
+    document.documentElement.setAttribute('data-ready', '1');
+  }
+  boot();
+})();
+</script>
+</body>
+</html>
