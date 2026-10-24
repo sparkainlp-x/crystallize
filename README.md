@@ -105,7 +105,7 @@ The "hidden direction that emerges as evidence accumulates" idea comes from the 
 
 ## How to cite
 
-See [CITATION.cff](CITATION.cff).
+Cite the concept DOI [10.5281/zenodo.23619510](https://doi.org/10.5281/zenodo.23619510) for all versions, or the version DOI [10.5281/zenodo.23619511](https://doi.org/10.5281/zenodo.23619511) for v0.1.0. See also [CITATION.cff](CITATION.cff).
 
 ## License
 
