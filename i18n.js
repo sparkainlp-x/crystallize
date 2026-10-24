@@ -232,8 +232,8 @@
     'share.score': 'Score {score}  (r\u00e9f\u00e9rence {ideal})',
     'share.samples': 'Mesures {n} sur {max}',
     'share.conviction': 'Conviction {conv} %',
-    'share.review_yes': 'R\u00e9plication : appuie',
-    'share.review_no': 'R\u00e9plication : n\'appuie pas',
+    'share.review_yes': 'R\u00e9plication : oui',
+    'share.review_no': 'R\u00e9plication : non',
     'share.calibration': 'Score',
     'share.synthetic': 'Jeu \u00e9ducatif synth\u00e9tique',
 

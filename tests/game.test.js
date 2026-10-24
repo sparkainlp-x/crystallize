@@ -350,6 +350,13 @@ test('share card conviction ignores direction and the French card has the same s
   assert.ok(!/\p{Extended_Pictographic}/u.test(fr));
 });
 
+test('every share-card line stays within 40 characters in every language, worst case included', () => {
+  for (const labels of [EN, FR]) for (const supports of [true, false]) {
+    const card = G.buildShare({ ...shareIn, labels, supports, p2: 0.999, score: 100, ideal: 100, n: 60, url: '' });
+    for (const line of card.split('\n')) assert.ok([...line].length <= 40, line);
+  }
+});
+
 test('share card for a free-form seed names the seed instead of a day', () => {
   const card = G.buildShare({ ...shareIn, seed: 'pk3x9', labels: EN });
   assert.equal(card.split('\n')[0], 'CRYSTALLIZE  seed pk3x9');
