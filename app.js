@@ -30,7 +30,7 @@
   /* ---------- state ---------- */
   var today = G.localDateString(new Date());
   var hash = G.parseHash(window.location.hash);
-  var lang = hash.lang && I.LANGS[hash.lang] ? hash.lang : (store.lang && I.LANGS[store.lang] ? store.lang : I.detectLang(navigator));
+  var lang = I.isLang(hash.lang) ? hash.lang : (I.isLang(store.lang) ? store.lang : I.detectLang(navigator));
   var S = {
     view: 'intro', mode: 'daily', seed: null, date: today, inst: null, n: 0, p1: null, p2: null,
     rep: null, result: null, beat: null, newBest: false

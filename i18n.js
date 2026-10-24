@@ -261,16 +261,19 @@
 
   var LANGS = { en: en, fr: fr };
 
+  function has(o, k) { return Object.prototype.hasOwnProperty.call(o, k); }
+  function isLang(code) { return typeof code === 'string' && has(LANGS, code); }
+
   function t(lang, key, vars) {
-    var dict = LANGS[lang] || LANGS.en;
+    var dict = isLang(lang) ? LANGS[lang] : LANGS.en;
     var s = key in dict ? dict[key] : (key in LANGS.en ? LANGS.en[key] : key);
     return String(s).replace(/\{(\w+)\}/g, function (m, k) { return vars && k in vars ? vars[k] : m; });
   }
 
   function detectLang(nav) {
     var l = String((nav && (nav.language || (nav.languages && nav.languages[0]))) || 'en').toLowerCase().slice(0, 2);
-    return LANGS[l] ? l : 'en';
+    return isLang(l) ? l : 'en';
   }
 
-  return { LANGS: LANGS, t: t, detectLang: detectLang, DEFAULT: 'en' };
+  return { LANGS: LANGS, t: t, isLang: isLang, detectLang: detectLang, DEFAULT: 'en' };
 });

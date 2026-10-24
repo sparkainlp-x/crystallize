@@ -63,3 +63,10 @@ test('statements about the generator match the code constants', () => {
   assert.match(I.LANGS.en['review.ref'], /20 and 20 degrees/);
   assert.ok(Math.abs(G.F95_20_20 - 2.1242) < 1e-9);
 });
+
+test('language lookup ignores inherited property names', () => {
+  for (const bad of ['__proto__', 'constructor', 'toString', 'hasOwnProperty', '', null, undefined, 5]) assert.equal(I.isLang(bad), false, String(bad));
+  assert.equal(I.isLang('en'), true); assert.equal(I.isLang('fr'), true);
+  assert.equal(I.t('__proto__', 'btn.help'), I.t('en', 'btn.help'));
+  assert.equal(I.detectLang({ language: '__proto__' }), 'en');
+});
