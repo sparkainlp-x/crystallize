@@ -21,7 +21,8 @@
   function saveStore() { try { window.localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (e) { /* private mode */ } }
 
   /* ---------- state ---------- */
-  var today = G.localDateString(new Date());
+  function todayStr() { return G.localDateString(new Date()); }
+  var today = todayStr();
   var hash = G.parseHash(window.location.hash);
   var lang = I.isLang(hash.lang) ? hash.lang : (I.isLang(store.lang) ? store.lang : I.detectLang(navigator));
   var S = {
@@ -120,7 +121,7 @@
     text('intro-prior', 'intro.prior', { pct: Math.round(prior * 100) });
     text('intro-rules', 'intro.rules', { cost: G.COST, max: G.MAX_SAMPLES, repl: G.REPL_N });
     text('btn-start', 'intro.start');
-    var done = S.mode === 'daily' && store.daily[today];
+    var done = S.mode === 'daily' && store.daily[S.date];
     $('btn-start').hidden = !!done;
     $('btn-see-result').hidden = !done;
     $('intro-already').hidden = !done;
@@ -264,7 +265,7 @@
 
   function renderStats() {
     var dates = Object.keys(store.daily);
-    var sk = G.computeStreak(dates, today);
+    var sk = G.computeStreak(dates, G.localDateString(new Date()));
     var none = t('stats.none');
     var items = [
       t('stats.streak', { n: sk.current }), t('stats.best_streak', { n: sk.best }),
@@ -320,14 +321,14 @@
     var score = Math.round(S.result.sc.total);
     S.newBest = false;
     if (S.mode === 'daily') {
-      store.daily[today] = { score: score, n: S.n, p1: S.p1, p2: S.p2 };
+      store.daily[S.date] = { score: score, n: S.n, p1: S.p1, p2: S.p2 };
       if (store.bestDaily === null || score > store.bestDaily) { store.bestDaily = score; S.newBest = true; }
     } else if (store.bestPractice === null || score > store.bestPractice) { store.bestPractice = score; S.newBest = true; }
     saveStore();
     show('result'); renderResult(); focusHeading('result-heading');
   }
   function showStoredResult() {
-    var d = store.daily[today];
+    var d = store.daily[S.date];
     S.inst = G.makeInstance(S.seed); S.n = d.n; S.p1 = d.p1; S.p2 = d.p2;
     S.result = computeResult(S.inst, d.n, d.p1, d.p2); S.newBest = false;
     show('result'); renderResult(); focusHeading('result-heading');
@@ -398,6 +399,7 @@
 
   /* ---------- boot ---------- */
   function boot() {
+    today = todayStr();
     var mode = 'daily', seed = G.dailySeed(today), date = today, beat = null;
     if (hash.seed) {
       if (hash.date === today) { mode = 'daily'; }
@@ -405,8 +407,22 @@
       if (hash.date === today && hash.best !== null) beat = hash.best;
     }
     newPuzzle(mode, seed, date, beat);
-    window.__crystallize = { errors: errors, ready: true };
-    document.documentElement.setAttribute('data-ready', '1');
   }
   boot();
+  window.__crystallize = { errors: errors, ready: true };
+  document.documentElement.setAttribute('data-ready', '1');
+
+  // a tab left open past midnight: offer the new day's puzzle when the player comes back to the intro
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden || S.view !== 'intro' || S.mode !== 'daily' || todayStr() === S.date) return;
+    hash = { seed: null, date: null, best: null, lang: hash.lang };
+    boot();
+  });
+  // a challenge link pasted into a tab that is already open
+  window.addEventListener('hashchange', function () {
+    var h = G.parseHash(window.location.hash);
+    if (!h.seed || S.view === 'play' || S.view === 'commit' || S.view === 'review') return;
+    hash = h;
+    boot();
+  });
 })();
