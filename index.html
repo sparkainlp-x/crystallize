@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<a class="skip" href="#main">Skip to the game</a>
+<a class="skip" id="skip-link" href="#main">Skip to the game</a>
 <header class="top">
   <div class="brand">
     <h1 id="app-title">CRYSTALLIZE</h1>
@@ -120,7 +120,7 @@
       <p id="lesson-body"></p>
     </article>
     <h3 id="share-heading"></h3>
-    <pre id="share-text" tabindex="0"></pre>
+    <pre id="share-text" tabindex="0" aria-labelledby="share-heading"></pre>
     <div class="row">
       <button id="btn-share" class="btn primary" type="button"></button>
       <button id="btn-challenge" class="btn" type="button"></button>

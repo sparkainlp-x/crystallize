@@ -91,6 +91,7 @@
   function renderStatic() {
     document.documentElement.lang = lang;
     document.title = t('doc.title');
+    text('skip-link', 'a11y.skip');
     text('app-title', 'app.title');
     text('app-tagline', 'app.tagline');
     text('tag-synthetic', 'tag.synthetic');
@@ -388,6 +389,8 @@
   $('help').addEventListener('click', function (e) { if (e.target === $('help')) closeHelp(); });
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && !$('help').hidden) { closeHelp(); return; }
+    // the dialog has one control: keep Tab inside it while it is open
+    if (e.key === 'Tab' && !$('help').hidden) { e.preventDefault(); $('btn-help-close').focus(); return; }
     if (e.ctrlKey || e.metaKey || e.altKey || !$('help').hidden) return;
     var tag = (e.target && e.target.tagName) || '';
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
