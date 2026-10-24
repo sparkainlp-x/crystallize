@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0 (unreleased)
+## 0.1.0 (2026-10-24)
 
 - First version: a daily and practice puzzle ("is there a hidden direction in this noise?") with a sampling budget, a probability claim, a simulated peer-review replication, a revised claim, a reference observer and a lesson card.
 - Pure logic in `game.js`: seeded RNG, generator, statistics, exact Bayesian reference observer, strictly proper scoring, replication, lessons, streaks, hash links, share card.
