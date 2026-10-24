@@ -372,3 +372,20 @@ test('share card without url has six lines', () => {
 test('fmt leaves unknown placeholders alone', () => {
   assert.equal(G.fmt('a {x} {y}', { x: 1 }), 'a 1 {y}');
 });
+
+/* ---------- saved record ---------- */
+test('sanitizeStore keeps good entries and drops malformed ones', () => {
+  const good = { score: 55, n: 12, p1: 0.7, p2: 0.8 };
+  const raw = { bestDaily: 55, bestPractice: 'x', lang: 'fr', daily: {
+    '2026-10-24': good, '2026-13-01': good, '2026-10-25': { score: 1, n: 3, p1: 0.5, p2: 0.5 },
+    '2026-10-26': { ...good, p2: 1 }, '2026-10-27': { ...good, n: 4.5 }, '2026-10-28': null, '2026-10-29': { ...good, score: NaN },
+    '2026-10-30': { ...good, n: 999 } } };
+  const s = G.sanitizeStore(raw);
+  assert.deepEqual(Object.keys(s.daily), ['2026-10-24']);
+  assert.equal(s.bestDaily, 55); assert.equal(s.bestPractice, null); assert.equal(s.lang, 'fr');
+  for (const junk of [null, undefined, 5, 'x', [], { daily: [] }, { daily: 'x' }]) {
+    const e = G.sanitizeStore(junk);
+    assert.deepEqual(e.daily, {}); assert.equal(e.bestDaily, null);
+  }
+  assert.equal(G.sanitizeStore({ lang: '__proto__' }).lang, undefined);
+});

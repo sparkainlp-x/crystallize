@@ -779,6 +779,27 @@ h2:focus, h2[tabindex="-1"]:focus { outline: none; }
     return String(str).replace(/\{(\w+)\}/g, function (m, k) { return vars && k in vars ? vars[k] : m; });
   }
 
+  // Rebuild a saved record from untrusted JSON: keep only well-formed entries, drop everything else.
+  function sanitizeStore(raw) {
+    var out = { daily: {}, bestDaily: null, bestPractice: null }, num = function (v) { return typeof v === 'number' && isFinite(v); };
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
+    if (num(raw.bestDaily)) out.bestDaily = raw.bestDaily;
+    if (num(raw.bestPractice)) out.bestPractice = raw.bestPractice;
+    if (typeof raw.lang === 'string' && /^[a-z]{2}$/.test(raw.lang)) out.lang = raw.lang;
+    var d = raw.daily;
+    if (d && typeof d === 'object' && !Array.isArray(d)) {
+      Object.keys(d).forEach(function (k) {
+        var e = d[k];
+        if (isNaN(dateIndex(k)) || !e || typeof e !== 'object') return;
+        if (!num(e.score) || !num(e.p1) || !num(e.p2) || !num(e.n)) return;
+        if (e.n < MIN_SAMPLES || e.n > MAX_SAMPLES || Math.floor(e.n) !== e.n) return;
+        if (e.p1 <= 0 || e.p1 >= 1 || e.p2 <= 0 || e.p2 >= 1) return;
+        out.daily[k] = { score: e.score, n: e.n, p1: e.p1, p2: e.p2 };
+      });
+    }
+    return out;
+  }
+
   function buildShare(o) {
     var L = o.labels, lines = [];
     lines.push(o.seed ? fmt(L['share.title_seed'], { seed: o.seed }) : fmt(L['share.title'], { day: o.day, date: o.date }));
@@ -801,7 +822,7 @@ h2:focus, h2[tabindex="-1"]:focus { outline: none; }
     roundScore: roundScore, replication: replication, stageTwoPoints: stageTwoPoints,
     referenceObserver: referenceObserver, pickLesson: pickLesson,
     dateIndex: dateIndex, dayNumber: dayNumber, localDateString: localDateString, dailySeed: dailySeed, seedDate: seedDate,
-    computeStreak: computeStreak, parseHash: parseHash, buildChallengeHash: buildChallengeHash,
+    computeStreak: computeStreak, sanitizeStore: sanitizeStore, parseHash: parseHash, buildChallengeHash: buildChallengeHash,
     bar: bar, fmt: fmt, buildShare: buildShare
   };
 });
@@ -823,15 +844,8 @@ h2:focus, h2[tabindex="-1"]:focus { outline: none; }
 
   /* ---------- storage (local only, failure tolerant) ---------- */
   function loadStore() {
-    try {
-      var raw = window.localStorage.getItem(STORE_KEY);
-      var s = raw ? JSON.parse(raw) : {};
-      if (!s || typeof s !== 'object') s = {};
-      s.daily = s.daily && typeof s.daily === 'object' ? s.daily : {};
-      s.bestDaily = typeof s.bestDaily === 'number' ? s.bestDaily : null;
-      s.bestPractice = typeof s.bestPractice === 'number' ? s.bestPractice : null;
-      return s;
-    } catch (e) { return { daily: {}, bestDaily: null, bestPractice: null }; }
+    try { return G.sanitizeStore(JSON.parse(window.localStorage.getItem(STORE_KEY) || '{}')); }
+    catch (e) { return G.sanitizeStore(null); }
   }
   var store = loadStore();
   function saveStore() { try { window.localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (e) { /* private mode */ } }

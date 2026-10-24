@@ -14,15 +14,8 @@
 
   /* ---------- storage (local only, failure tolerant) ---------- */
   function loadStore() {
-    try {
-      var raw = window.localStorage.getItem(STORE_KEY);
-      var s = raw ? JSON.parse(raw) : {};
-      if (!s || typeof s !== 'object') s = {};
-      s.daily = s.daily && typeof s.daily === 'object' ? s.daily : {};
-      s.bestDaily = typeof s.bestDaily === 'number' ? s.bestDaily : null;
-      s.bestPractice = typeof s.bestPractice === 'number' ? s.bestPractice : null;
-      return s;
-    } catch (e) { return { daily: {}, bestDaily: null, bestPractice: null }; }
+    try { return G.sanitizeStore(JSON.parse(window.localStorage.getItem(STORE_KEY) || '{}')); }
+    catch (e) { return G.sanitizeStore(null); }
   }
   var store = loadStore();
   function saveStore() { try { window.localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (e) { /* private mode */ } }
