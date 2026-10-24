@@ -130,7 +130,8 @@
 
   /* ---------- scoring ---------- */
 
-  function clampP(p) { return Math.min(P_MAX, Math.max(P_MIN, p)); }
+  // non-numbers and NaN become 50% instead of poisoning the score
+  function clampP(p) { p = Number(p); if (!isFinite(p)) return 0.5; return Math.min(P_MAX, Math.max(P_MIN, p)); }
   function brier(p, truth) { var d = clampP(p) - (truth ? 1 : 0); return d * d; }
   // 100 at a perfect report, 0 at 50%, negative when confidently wrong. Strictly proper.
   function calibrationPoints(p, truth) { return 100 * (1 - 4 * brier(p, truth)); }

@@ -165,6 +165,12 @@ test('clampP keeps reports inside [0.01, 0.99]', () => {
   assert.ok(Number.isFinite(G.calibrationPoints(0, true)) && Number.isFinite(G.calibrationPoints(1, false)));
 });
 
+test('clampP turns NaN, undefined and infinities into a finite report', () => {
+  assert.equal(G.clampP(NaN), 0.5); assert.equal(G.clampP(undefined), 0.5); assert.equal(G.clampP('x'), 0.5);
+  assert.equal(G.clampP(Infinity), 0.5); assert.equal(G.clampP('0.3'), 0.3);
+  assert.ok(Number.isFinite(G.roundScore({ p1: NaN, p2: undefined, truth: true, n: 10 }).total));
+});
+
 test('sampling cost is linear and increasing, so over-sampling is penalised', () => {
   assert.equal(G.samplingCost(0), 0);
   for (let n = 1; n < 60; n++) assert.ok(G.samplingCost(n + 1) > G.samplingCost(n));
