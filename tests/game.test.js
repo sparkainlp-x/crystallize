@@ -263,6 +263,19 @@ test('dateIndex and dayNumber: epoch is day 1 and the count survives DST and lea
   assert.equal(G.localDateString(new Date(2026, 0, 5)), '2026-01-05');
 });
 
+test('dates must be real calendar days: no roll-over, nothing before launch', () => {
+  for (const bad of ['2026-13-01', '2026-02-30', '2026-00-10', '2026-04-31', '0050-01-01', '2026-1-1', '', 'x']) {
+    assert.ok(Number.isNaN(G.dateIndex(bad)), bad);
+  }
+  assert.ok(!Number.isNaN(G.dateIndex('2028-02-29')));
+  assert.ok(Number.isNaN(G.dateIndex('2027-02-29')));
+  assert.equal(G.parseHash('#d=2026-13-99').seed, null);
+  assert.equal(G.parseHash('#d=2026-02-30').seed, null);
+  assert.equal(G.parseHash('#d=2026-10-22').seed, null);          // before day 1
+  assert.equal(G.parseHash('#d=2026-10-23').seed, 'd2026-10-23');
+  assert.equal(G.seedDate('d2026-02-30'), null);
+});
+
 test('computeStreak: runs, gaps, yesterday grace, duplicates, bad input', () => {
   const s = (dates, today) => G.computeStreak(dates, today);
   assert.deepEqual(s([], '2026-10-23'), { current: 0, best: 0 });
